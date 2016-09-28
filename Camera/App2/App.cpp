@@ -3,7 +3,7 @@
 
 #include <ppltasks.h>
 
-using namespace GXII_Project;
+using namespace App2;
 
 using namespace concurrency;
 using namespace Windows::ApplicationModel;
@@ -14,6 +14,8 @@ using namespace Windows::UI::Input;
 using namespace Windows::System;
 using namespace Windows::Foundation;
 using namespace Windows::Graphics::Display;
+
+CoreWindow^ gwindow = nullptr;
 
 // The main function is only used to initialize our IFrameworkView class.
 [Platform::MTAThread]
@@ -57,6 +59,7 @@ void App::Initialize(CoreApplicationView^ applicationView)
 // Called when the CoreWindow object is created (or re-created).
 void App::SetWindow(CoreWindow^ window)
 {
+	gwindow = window;
 	window->SizeChanged += 
 		ref new TypedEventHandler<CoreWindow^, WindowSizeChangedEventArgs^>(this, &App::OnWindowSizeChanged);
 
@@ -77,6 +80,26 @@ void App::SetWindow(CoreWindow^ window)
 	DisplayInformation::DisplayContentsInvalidated +=
 		ref new TypedEventHandler<DisplayInformation^, Object^>(this, &App::OnDisplayContentsInvalidated);
 
+
+	/*POINTER STUFF*/
+	window->PointerPressed +=
+		ref new TypedEventHandler<CoreWindow^, PointerEventArgs^>(this, &App::OnPointerPressed);
+
+	window->PointerReleased +=
+		ref new TypedEventHandler<CoreWindow^, PointerEventArgs^>(this, &App::OnPointerReleased);
+
+	window->PointerMoved +=
+		ref new TypedEventHandler<CoreWindow^, PointerEventArgs^>(this, &App::OnPointerMoved);
+
+	window->KeyDown +=
+		ref new TypedEventHandler<CoreWindow^, KeyEventArgs^>(this, &App::OnKeyDown);
+
+	window->KeyUp +=
+		ref new TypedEventHandler<CoreWindow^, KeyEventArgs^>(this, &App::OnKeyUp);
+
+	window->PointerExited += 
+		ref new Windows::Foundation::TypedEventHandler<Windows::UI::Core::CoreWindow ^, Windows::UI::Core::PointerEventArgs ^>(this, &App2::App::OnPointerExited);
+
 	m_deviceResources->SetWindow(window);
 }
 
@@ -85,13 +108,14 @@ void App::Load(Platform::String^ entryPoint)
 {
 	if (m_main == nullptr)
 	{
-		m_main = std::unique_ptr<GXII_ProjectMain>(new GXII_ProjectMain(m_deviceResources));
+		m_main = std::unique_ptr<App2Main>(new App2Main(m_deviceResources));
 	}
 }
 
 // This method is called after the window becomes active.
 void App::Run()
 {
+
 	while (!m_windowClosed)
 	{
 		if (m_windowVisible)
@@ -119,8 +143,93 @@ void App::Uninitialize()
 {
 }
 
-// Application lifecycle event handlers.
+bool mouse_move = false;
+float diffx = 0;
+float diffy = 0;
+bool left_click = false;
 
+void App::OnPointerPressed(CoreWindow^ sender, PointerEventArgs^ args)
+{
+	diffx = 0;
+	diffy = 0;
+	left_click = true;
+	mouse_move = true;
+}
+
+void App::OnPointerReleased(CoreWindow^ sender, PointerEventArgs^ args)
+{
+	diffx = 0;
+	diffy = 0;
+	left_click = false;
+	mouse_move = true;
+}
+
+void App::OnPointerMoved(CoreWindow^ sender, PointerEventArgs^ args)
+{
+	mouse_move = true;
+	float X = args->CurrentPoint->Position.X;
+	float Y = args->CurrentPoint->Position.Y;
+	static float prevX = X;
+	static float prevY = Y;
+	diffx = X - prevX;
+	diffy = Y - prevY;
+	prevX = X;
+	prevY = Y;
+}
+
+/*This function needs to be implimented on Desktop as to prevent a problem where mouse released event doesn't trigger*/
+void App2::App::OnPointerExited(Windows::UI::Core::CoreWindow ^sender, Windows::UI::Core::PointerEventArgs ^args)
+{
+	diffx = 0;
+	diffy = 0;
+	left_click = false;
+	mouse_move = false;
+}
+
+bool w_down = false;
+bool a_down = false;
+bool s_down = false;
+bool d_down = false;
+
+char buttons[256] = {};
+
+void App2::App::OnKeyDown(Windows::UI::Core::CoreWindow ^ sender, Windows::UI::Core::KeyEventArgs ^ args)
+{
+
+	buttons[(unsigned int)args->VirtualKey] = true;
+
+	if (args->VirtualKey == Windows::System::VirtualKey::W)
+		w_down = true;
+
+	if (args->VirtualKey == Windows::System::VirtualKey::A)
+		a_down = true;
+
+	if (args->VirtualKey == Windows::System::VirtualKey::S)
+		s_down = true;
+
+	if (args->VirtualKey == Windows::System::VirtualKey::D)
+		d_down = true;
+}
+
+void App2::App::OnKeyUp(Windows::UI::Core::CoreWindow ^ sender, Windows::UI::Core::KeyEventArgs ^ args)
+{
+
+	buttons[(unsigned int)args->VirtualKey] = false;
+
+	if (args->VirtualKey == Windows::System::VirtualKey::W)
+		w_down = false;
+
+	if (args->VirtualKey == Windows::System::VirtualKey::A)
+		a_down = false;
+
+	if (args->VirtualKey == Windows::System::VirtualKey::S)
+		s_down = false;
+
+	if (args->VirtualKey == Windows::System::VirtualKey::D)
+		d_down = false;
+}
+
+// Application lifecycle event handlers.
 void App::OnActivated(CoreApplicationView^ applicationView, IActivatedEventArgs^ args)
 {
 	// Run() won't start until the CoreWindow is activated.
@@ -140,7 +249,6 @@ void App::OnSuspending(Platform::Object^ sender, SuspendingEventArgs^ args)
         m_deviceResources->Trim();
 
 		// Insert your code here.
-
 		deferral->Complete();
 	});
 }

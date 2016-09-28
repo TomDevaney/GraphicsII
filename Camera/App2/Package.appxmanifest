@@ -7,15 +7,15 @@
   IgnorableNamespaces="uap mp">
 
   <Identity
-    Name="fdbd6508-4608-4be0-80b8-e53df1d69848"
-    Publisher="CN=Thyasianman"
+    Name="a4a0e657-834b-40c4-a7da-e2bb26e2916c"
+    Publisher="CN=Tim"
     Version="1.0.0.0" />
 
-  <mp:PhoneIdentity PhoneProductId="fdbd6508-4608-4be0-80b8-e53df1d69848" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+  <mp:PhoneIdentity PhoneProductId="a4a0e657-834b-40c4-a7da-e2bb26e2916c" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
-    <DisplayName>GXII_Project</DisplayName>
-    <PublisherDisplayName>Thyasianman</PublisherDisplayName>
+    <DisplayName>App2</DisplayName>
+    <PublisherDisplayName>Tim</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 
@@ -30,12 +30,12 @@
   <Applications>
     <Application Id="App"
       Executable="$targetnametoken$.exe"
-      EntryPoint="GXII_Project.App">
+      EntryPoint="App2.App">
       <uap:VisualElements
-        DisplayName="GXII_Project"
+        DisplayName="App2"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png"
-        Description="GXII_Project"
+        Description="App2"
         BackgroundColor="transparent">
         <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png"/>
         <uap:SplashScreen Image="Assets\SplashScreen.png" />

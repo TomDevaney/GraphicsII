@@ -4,7 +4,10 @@
 #include "ShaderStructures.h"
 #include "..\Common\StepTimer.h"
 
-namespace GXII_Project
+#include <DirectXMath.h>
+using namespace DirectX;
+
+namespace App2
 {
 	// This sample renderer instantiates a basic rendering pipeline.
 	class Sample3DSceneRenderer
@@ -45,6 +48,11 @@ namespace GXII_Project
 		bool	m_loadingComplete;
 		float	m_degreesPerSecond;
 		bool	m_tracking;
+
+		XMFLOAT4X4 world, camera, proj;
+
+		//Model
+		Model pyramid;
 	};
 }
 

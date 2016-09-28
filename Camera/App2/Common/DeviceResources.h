@@ -14,6 +14,7 @@ namespace DX
 	{
 	public:
 		DeviceResources();
+		Windows::UI::Core::CoreWindow^ GetWindow(void);
 		void SetWindow(Windows::UI::Core::CoreWindow^ window);
 		void SetLogicalSize(Windows::Foundation::Size logicalSize);
 		void SetCurrentOrientation(Windows::Graphics::Display::DisplayOrientations currentOrientation);

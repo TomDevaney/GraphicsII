@@ -2,9 +2,9 @@
 
 #include "pch.h"
 #include "Common\DeviceResources.h"
-#include "GXII_ProjectMain.h"
+#include "App2Main.h"
 
-namespace GXII_Project
+namespace App2
 {
 	// Main entry point for our app. Connects the app with the Windows shell and handles application lifecycle events.
 	ref class App sealed : public Windows::ApplicationModel::Core::IFrameworkView
@@ -26,6 +26,13 @@ namespace GXII_Project
 		void OnResuming(Platform::Object^ sender, Platform::Object^ args);
 
 		// Window event handlers.
+		void OnPointerPressed(Windows::UI::Core::CoreWindow^ sender, Windows::UI::Core::PointerEventArgs^ args);
+		void OnPointerReleased(Windows::UI::Core::CoreWindow^ sender, Windows::UI::Core::PointerEventArgs^ args);
+		void OnPointerMoved(Windows::UI::Core::CoreWindow^ sender, Windows::UI::Core::PointerEventArgs^ args);
+
+		void OnKeyDown(Windows::UI::Core::CoreWindow^ sender, Windows::UI::Core::KeyEventArgs^ args);
+		void OnKeyUp(Windows::UI::Core::CoreWindow^ sender, Windows::UI::Core::KeyEventArgs^ args);
+
 		void OnWindowSizeChanged(Windows::UI::Core::CoreWindow^ sender, Windows::UI::Core::WindowSizeChangedEventArgs^ args);
 		void OnVisibilityChanged(Windows::UI::Core::CoreWindow^ sender, Windows::UI::Core::VisibilityChangedEventArgs^ args);
 		void OnWindowClosed(Windows::UI::Core::CoreWindow^ sender, Windows::UI::Core::CoreWindowEventArgs^ args);
@@ -37,9 +44,13 @@ namespace GXII_Project
 
 	private:
 		std::shared_ptr<DX::DeviceResources> m_deviceResources;
-		std::unique_ptr<GXII_ProjectMain> m_main;
+		std::unique_ptr<App2Main> m_main;
 		bool m_windowClosed;
 		bool m_windowVisible;
+
+		Windows::Foundation::Point m_lastPosition;
+		UINT m_pointerId;
+		void OnPointerExited(Windows::UI::Core::CoreWindow ^sender, Windows::UI::Core::PointerEventArgs ^args);
 	};
 }
 

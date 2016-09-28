@@ -3,7 +3,7 @@
 
 #include "..\Common\DirectXHelper.h"
 
-using namespace GXII_Project;
+using namespace App2;
 
 using namespace DirectX;
 using namespace Windows::Foundation;
@@ -18,6 +18,14 @@ Sample3DSceneRenderer::Sample3DSceneRenderer(const std::shared_ptr<DX::DeviceRes
 {
 	CreateDeviceDependentResources();
 	CreateWindowSizeDependentResources();
+
+	//XMStoreFloat4x4(&view, XMMatrixIdentity());
+
+	static const XMVECTORF32 eye = { 0.0f, 0.0f, -1.5f, 0.0f };
+	static const XMVECTORF32 at = { 0.0f, 0.0f, 0.0f, 0.0f };
+	static const XMVECTORF32 up = { 0.0f, 1.0f, 0.0f, 0.0f };
+	XMStoreFloat4x4(&camera, XMMatrixLookAtRH(eye, at, up));
+	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixTranspose(XMMatrixInverse(0, XMMatrixLookAtRH(eye, at, up))));
 }
 
 // Initializes view parameters when the window size changes.
@@ -25,7 +33,7 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources()
 {
 	Size outputSize = m_deviceResources->GetOutputSize();
 	float aspectRatio = outputSize.Width / outputSize.Height;
-	float fovAngleY = 70.0f * XM_PI / 180.0f;
+	float fovAngleY = 60.0f * XM_PI / 180.0f;
 
 	// This is a simple example of change that can be made when the app is in
 	// portrait or snapped view.
@@ -58,12 +66,22 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources()
 		);
 
 	// Eye is at (0,0.7,1.5), looking at point (0,-0.1,0) with the up-vector along the y-axis.
-	static const XMVECTORF32 eye = { 0.0f, 0.7f, 1.5f, 0.0f };
-	static const XMVECTORF32 at = { 0.0f, -0.1f, 0.0f, 0.0f };
-	static const XMVECTORF32 up = { 0.0f, 1.0f, 0.0f, 0.0f };
-
-	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixTranspose(XMMatrixLookAtRH(eye, at, up)));
+	
 }
+
+using namespace Windows::UI::Core;
+extern CoreWindow^ gwindow;
+#include <atomic>
+extern bool mouse_move;
+extern float diffx;
+extern float diffy;
+extern bool w_down;
+extern bool a_down;
+extern bool s_down;
+extern bool d_down;
+extern bool left_click;
+
+extern char buttons[256];
 
 // Called once per frame, rotates the cube and calculates the model and view matrices.
 void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
@@ -77,6 +95,52 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 
 		Rotate(radians);
 	}
+
+	XMMATRIX newcamera = XMLoadFloat4x4(&camera);
+
+	if (buttons['W'])
+	{
+		newcamera.r[3] = newcamera.r[3] + newcamera.r[2] * -timer.GetElapsedSeconds() * 5.0;
+	}
+
+	if (a_down)
+	{
+		newcamera.r[3] = newcamera.r[3] + newcamera.r[0] * -timer.GetElapsedSeconds() *5.0;
+	}
+
+	if (s_down)
+	{
+		newcamera.r[3] = newcamera.r[3] + newcamera.r[2] * timer.GetElapsedSeconds() * 5.0;
+	}
+
+	if (d_down)
+	{
+		newcamera.r[3] = newcamera.r[3] + newcamera.r[0] * timer.GetElapsedSeconds() * 5.0;
+	}
+
+	Windows::UI::Input::PointerPoint^ point = nullptr;
+	
+	//if(mouse_move)/*This crashes unless a mouse event actually happened*/
+		//point = Windows::UI::Input::PointerPoint::GetCurrentPoint(pointerID);
+
+	if (mouse_move)
+	{
+		// Updates the application state once per frame.
+		if (left_click)
+		{
+			XMVECTOR pos = newcamera.r[3];
+			newcamera.r[3] = XMLoadFloat4(&XMFLOAT4(0, 0, 0, 1));
+			newcamera = XMMatrixRotationX(-diffy*0.01f) * newcamera * XMMatrixRotationY(-diffx*0.01f);
+			newcamera.r[3] = pos;
+		}
+	}
+
+	XMStoreFloat4x4(&camera, newcamera);
+
+	/*Be sure to inverse the camera & Transpose because they don't use pragma pack row major in shaders*/
+	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixTranspose(XMMatrixInverse(0, newcamera)));
+
+	mouse_move = false;/*Reset*/
 }
 
 // Rotate the 3D cube model a set amount of radians.
@@ -196,7 +260,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 				&m_vertexShader
 				)
 			);
-
+		
 		static const D3D11_INPUT_ELEMENT_DESC vertexDesc [] =
 		{
 			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -310,6 +374,10 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources()
 	createCubeTask.then([this] () {
 		m_loadingComplete = true;
 	});
+
+	pyramid.SetFilePath("Assets/test pyramid.obj");
+	pyramid.ReadFile();
+	pyramid.CreateDeviceDependentResources(m_deviceResources);
 }
 
 void Sample3DSceneRenderer::ReleaseDeviceDependentResources()

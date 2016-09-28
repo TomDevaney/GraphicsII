@@ -1,14 +1,16 @@
 ﻿#include "pch.h"
-#include "GXII_ProjectMain.h"
+#include "App2Main.h"
 #include "Common\DirectXHelper.h"
 
-using namespace GXII_Project;
+#include <Windows.h>
+
+using namespace App2;
 using namespace Windows::Foundation;
 using namespace Windows::System::Threading;
 using namespace Concurrency;
 
 // Loads and initializes application assets when the application is loaded.
-GXII_ProjectMain::GXII_ProjectMain(const std::shared_ptr<DX::DeviceResources>& deviceResources) :
+App2Main::App2Main(const std::shared_ptr<DX::DeviceResources>& deviceResources) :
 	m_deviceResources(deviceResources)
 {
 	// Register to be notified if the Device is lost or recreated
@@ -25,24 +27,45 @@ GXII_ProjectMain::GXII_ProjectMain(const std::shared_ptr<DX::DeviceResources>& d
 	m_timer.SetFixedTimeStep(true);
 	m_timer.SetTargetElapsedSeconds(1.0 / 60);
 	*/
+
+	//fstream fin;
+	//char buffer[100];
+
+	//fin.open("test.txt", ios_base::in);
+
+	//if (fin.is_open())
+	//{
+	//	fin << buffer;
+	//}
+
+	//fin.close();
 }
 
-GXII_ProjectMain::~GXII_ProjectMain()
+App2Main::~App2Main()
 {
 	// Deregister device notification
 	m_deviceResources->RegisterDeviceNotify(nullptr);
 }
 
 // Updates application state when the window size changes (e.g. device orientation change)
-void GXII_ProjectMain::CreateWindowSizeDependentResources() 
+void App2Main::CreateWindowSizeDependentResources() 
 {
 	// TODO: Replace this with the size-dependent initialization of your app's content.
 	m_sceneRenderer->CreateWindowSizeDependentResources();
 }
 
+using namespace Windows::UI::Core;
+extern CoreWindow^ gwindow;
 // Updates the application state once per frame.
-void GXII_ProjectMain::Update() 
+void App2Main::Update() 
 {
+	if (Windows::UI::Core::CoreVirtualKeyStates::Down == gwindow->GetAsyncKeyState(Windows::System::VirtualKey::Space))
+	{
+		Windows::UI::Input::PointerPoint^ point = Windows::UI::Input::PointerPoint::GetCurrentPoint(1);
+		float X = point->Position.X;
+		float Y = point->Position.Y;
+	}
+
 	// Update scene objects.
 	m_timer.Tick([&]()
 	{
@@ -54,7 +77,7 @@ void GXII_ProjectMain::Update()
 
 // Renders the current frame according to the current application state.
 // Returns true if the frame was rendered and is ready to be displayed.
-bool GXII_ProjectMain::Render() 
+bool App2Main::Render() 
 {
 	// Don't try to render anything before the first Update.
 	if (m_timer.GetFrameCount() == 0)
@@ -84,15 +107,27 @@ bool GXII_ProjectMain::Render()
 	return true;
 }
 
+void App2::App2Main::OnPointerPressed(Windows::UI::Core::CoreWindow ^ sender, Windows::UI::Core::PointerEventArgs ^ args)
+{
+}
+
+void App2::App2Main::OnPointerReleased(Windows::UI::Core::CoreWindow ^ sender, Windows::UI::Core::PointerEventArgs ^ args)
+{
+}
+
+void App2::App2Main::OnPointerMoved(Windows::UI::Core::CoreWindow ^ sender, Windows::UI::Core::PointerEventArgs ^ args)
+{
+}
+
 // Notifies renderers that device resources need to be released.
-void GXII_ProjectMain::OnDeviceLost()
+void App2Main::OnDeviceLost()
 {
 	m_sceneRenderer->ReleaseDeviceDependentResources();
 	m_fpsTextRenderer->ReleaseDeviceDependentResources();
 }
 
 // Notifies renderers that device resources may now be recreated.
-void GXII_ProjectMain::OnDeviceRestored()
+void App2Main::OnDeviceRestored()
 {
 	m_sceneRenderer->CreateDeviceDependentResources();
 	m_fpsTextRenderer->CreateDeviceDependentResources();

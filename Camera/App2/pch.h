@@ -13,3 +13,8 @@
 #include <memory>
 #include <agile.h>
 #include <concrt.h>
+
+//my classes
+#include "Model.h"
+
+const OBJ_VERT *PYRAMID = test_pyramid_data;
