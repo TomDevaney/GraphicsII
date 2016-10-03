@@ -1,6 +1,7 @@
 #pragma once
 #include "Defines.h"
 #include "DDSTextureLoader.h"
+#include "..\Common\StepTimer.h"
 
 class Model
 {
@@ -36,6 +37,10 @@ private:
 	unsigned int instanceWidth;
 	Microsoft::WRL::ComPtr<ID3D11Buffer>		m_instanceBuffer;;
 
+	//lighting members
+	Microsoft::WRL::ComPtr<ID3D11Buffer>		m_lightConstantBuffer;
+	LightingConstantBuffer m_lightConstantBufferData;
+	float deltaLight = 1;
 
 public:
 	//~Model();
@@ -47,7 +52,13 @@ public:
 	void CreateDeviceDependentResources(const std::shared_ptr<DX::DeviceResources>& deviceResources);
 	void Render();
 	void Translate(XMFLOAT3 distance);
+	void Rotate(float radians);
 	void SetProjection(XMMATRIX projection);
 	void SetView(XMMATRIX view);
 	void SetInstanceData(unsigned int numInstances, unsigned int widthOfInstance);
+	void SetDirectionalLight(XMFLOAT4 directionalLightDirection, XMFLOAT4 directionalLightColor, XMFLOAT4 ambientRatio);
+	void SetPointLight(XMFLOAT4 pointPosition, XMFLOAT4 pointLightColor, XMFLOAT4 lightRadius);
+	void SetSpotLight(XMFLOAT4 spotPosition, XMFLOAT4 spotLightColor, XMFLOAT4 coneRatio, XMFLOAT4 coneDirection);
+	void UpdateLightRadius(DX::StepTimer const& timer);
+	void UpdateSpotLight(XMFLOAT4X4 camera, XMVECTOR camTarget);
 };

@@ -29,4 +29,22 @@ namespace DX11UWA
 	{
 		DirectX::XMFLOAT3 pos;
 	};
+
+	struct LightingConstantBuffer
+	{
+		DirectX::XMFLOAT4 typeOfLight;
+		DirectX::XMFLOAT4 dirLightNorm;
+		DirectX::XMFLOAT4 dirLightColor;
+		DirectX::XMFLOAT4 ambientLight;
+
+		DirectX::XMFLOAT4 pointLightPosition;
+		DirectX::XMFLOAT4 pointLightColor;
+		DirectX::XMFLOAT4 lightRadius;
+
+		DirectX::XMFLOAT4 spotLightPosition;
+		DirectX::XMFLOAT4 spotLightColor;
+		DirectX::XMFLOAT4 coneRatio;
+		DirectX::XMFLOAT4 coneDirection;
+
+	};
 }

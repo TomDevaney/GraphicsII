@@ -57,6 +57,7 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources(void)
 	//Set models projection
 	pyramid.SetProjection(XMMatrixTranspose(perspectiveMatrix * orientationMatrix));
 	goomba.SetProjection(XMMatrixTranspose(perspectiveMatrix * orientationMatrix));
+	tree.SetProjection(XMMatrixTranspose(perspectiveMatrix * orientationMatrix));
 
 	// Eye is at (0,0.7,1.5), looking at point (0,-0.1,0) with the up-vector along the y-axis.
 	static const XMVECTORF32 eye = { 0.0f, 0.7f, -1.5f, 0.0f };
@@ -65,6 +66,8 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources(void)
 
 	XMStoreFloat4x4(&m_camera, XMMatrixInverse(nullptr, XMMatrixLookAtLH(eye, at, up)));
 	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixTranspose(XMMatrixLookAtLH(eye, at, up)));
+
+	camTarget = XMVectorSet(0, 0, 0, 0);
 }
 
 // Called once per frame, rotates the cube and calculates the model and view matrices.
@@ -78,11 +81,23 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 		float radians = static_cast<float>(fmod(totalRotation, XM_2PI));
 
 		Rotate(radians);
+		goomba.UpdateLightRadius(timer);
+		tree.UpdateLightRadius(timer);
 	}
 
+	//handle camtarget
+	camRotationMatrix = XMMatrixRotationRollPitchYaw(camPitch, camYaw, 0);
+	camTarget = XMVector3TransformCoord({ 0, 0, 1, 0 }, camRotationMatrix);
+	camTarget = XMVector3Normalize(camTarget);
 
 	// Update or move camera here
 	UpdateCamera(timer, 1.0f, 0.75f);
+
+	//update camtarget
+	camTarget = XMVectorSet(m_camera._41, m_camera._42, m_camera._43, m_camera._44) + camTarget; //position + old camtarget = new camtarget
+
+	//Set spotlight to camera position
+	goomba.UpdateSpotLight(m_camera, camTarget);
 }
 
 // Rotate the 3D cube model a set amount of radians.
@@ -90,6 +105,7 @@ void Sample3DSceneRenderer::Rotate(float radians)
 {
 	// Prepare to pass the updated model matrix to the shader
 	XMStoreFloat4x4(&m_constantBufferData.model, XMMatrixTranspose(XMMatrixRotationY(radians)));
+	//goomba.Rotate(radians);
 }
 
 void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const moveSpd, float const rotSpd)
@@ -154,6 +170,10 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 
 			XMMATRIX rotX = XMMatrixRotationX(dy * rotSpd * delta_time);
 			XMMATRIX rotY = XMMatrixRotationY(dx * rotSpd * delta_time);
+
+			//my stuff
+			camYaw += dx * delta_time;
+			camPitch += dy * delta_time;
 
 			XMMATRIX temp_camera = XMLoadFloat4x4(&m_camera);
 			temp_camera = XMMatrixMultiply(rotX, temp_camera);
@@ -223,7 +243,7 @@ void Sample3DSceneRenderer::Render(void)
 	//Set Models View
 	pyramid.SetView(XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
 	goomba.SetView(XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
-
+	tree.SetView(XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
 
 	// Prepare the constant buffer to send it to the graphics device.
 	context->UpdateSubresource1(m_constantBuffer.Get(), 0, NULL, &m_constantBufferData, 0, 0, 0);
@@ -248,6 +268,7 @@ void Sample3DSceneRenderer::Render(void)
 	//Draw all of my models
 	pyramid.Render();
 	goomba.Render();
+	//tree.Render();
 }
 
 void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
@@ -347,10 +368,22 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	goomba.SetFilePath("Assets/Fuzzy Goomba.obj");
 	goomba.SetTexturePath("Assets/Diffuse_Fuzzy_Corrupt.dds");
 	goomba.SetInstanceData(500, 1);
+	goomba.SetDirectionalLight({ 0.577f, 0.577f, -0.577f, 0 }, { 0.75f, 0.75f, 0.94f, 1.0f }, { 0.3f, 0.3f, 0.3f, 0.3f });
+	goomba.SetPointLight({ 1, 4.0f, 1, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
+	goomba.SetSpotLight({ 0, 0, 0, 0 }, { 1.0f, 1.0f, 1.0f, 0 }, { 0.9f, 0, 0, 0 }, {0, 0, 1, 0 });
 	goomba.ReadFile();
 	goomba.CreateDeviceDependentResources(m_deviceResources);
 	goomba.Translate({ 0, 2.0f, 0 });
 
+
+	//tree.SetFilePath("Assets/Tree.obj");
+	//tree.SetTexturePath("Assets/Diffuse_Treehouse.dds");
+	////tree.SetInstanceData(1, 1);
+	//tree.SetDirectionalLight({ 0.577f, 0.577f, -0.577f, 0 }, { 0.75f, 0.75f, 0.94f, 1.0f }, { 0.3f, 0.3f, 0.3f, 0.3f });
+	//tree.SetPointLight({ 1, 4.0f, 1, 0 }, { 1, 1, 0, 0 }, { 5, 0, 0, 0 });
+	//tree.ReadFile();
+	//tree.CreateDeviceDependentResources(m_deviceResources);
+	//tree.Translate({ -6.0f, 2.0f, 0 });
 
 	// Once the cube is loaded, the object is ready to be rendered.
 	createCubeTask.then([this]()

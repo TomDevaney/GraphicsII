@@ -199,6 +199,7 @@ void Model::CreateDeviceDependentResources(const std::shared_ptr<DX::DeviceResou
 		);
 	});
 
+	//Create pixel shader
 	auto createPSTask = loadPSTask.then([this](const std::vector<byte>& fileData) {
 		DX::ThrowIfFailed(
 			m_deviceResources->GetD3DDevice()->CreatePixelShader(
@@ -208,13 +209,24 @@ void Model::CreateDeviceDependentResources(const std::shared_ptr<DX::DeviceResou
 				&m_pixelShader
 			)
 		);
-
+		 
+		//Create constant buffer to matrices and isInstance
 		CD3D11_BUFFER_DESC constantBufferDesc(sizeof(ModelViewProjectionConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
 		DX::ThrowIfFailed(
 			m_deviceResources->GetD3DDevice()->CreateBuffer(
 				&constantBufferDesc,
 				nullptr,
 				&m_constantBuffer
+			)
+		);
+
+		//Create constant buffer for lighting
+		CD3D11_BUFFER_DESC lightConstantBufferDesc(sizeof(LightingConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
+		DX::ThrowIfFailed(
+			m_deviceResources->GetD3DDevice()->CreateBuffer(
+				&lightConstantBufferDesc,
+				nullptr,
+				&m_lightConstantBuffer
 			)
 		);
 	});
@@ -318,6 +330,17 @@ void Model::Render()
 		0
 	);
 
+	//Prepare light constant buffer
+	context->UpdateSubresource1(
+		m_lightConstantBuffer.Get(),
+		0,
+		NULL,
+		&m_lightConstantBufferData,
+		0,
+		0,
+		0
+	);
+
 	// Each vertex is one instance of the Vertex struct.
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
@@ -375,6 +398,15 @@ void Model::Render()
 		nullptr
 	);
 
+	//Send light constant buffer to pixel shader
+	context->PSSetConstantBuffers1(
+		0,
+		1,
+		m_lightConstantBuffer.GetAddressOf(),
+		nullptr,
+		nullptr
+	);
+
 	// Attach our pixel shader.
 	context->PSSetShader(
 		m_pixelShader.Get(),
@@ -425,4 +457,79 @@ void Model::SetInstanceData(unsigned int numInstances, unsigned int widthOfInsta
 	isInstanced = true;
 	numOfInstances = numInstances;
 	instanceWidth = widthOfInstance;
+}
+
+void Model::SetDirectionalLight(XMFLOAT4 directionalLightDirection, XMFLOAT4 directionalLightColor, XMFLOAT4 ambientRatio) // {directional, point, spot, 0}
+{
+	m_lightConstantBufferData.ambientLight = ambientRatio;
+	m_lightConstantBufferData.dirLightNorm = directionalLightDirection;
+	m_lightConstantBufferData.dirLightColor = directionalLightColor;
+	m_lightConstantBufferData.typeOfLight.x = 1.0f;
+}
+
+void Model::SetPointLight(XMFLOAT4 pointPosition, XMFLOAT4 pointLightColor, XMFLOAT4 lightRadius)
+{
+	m_lightConstantBufferData.pointLightPosition = pointPosition;
+	m_lightConstantBufferData.pointLightColor = pointLightColor;
+	m_lightConstantBufferData.typeOfLight.y = 1.0f;
+	m_lightConstantBufferData.lightRadius = lightRadius;
+}
+
+void Model::UpdateLightRadius(DX::StepTimer const& timer)
+{
+	const float delta_time = (float)timer.GetElapsedSeconds();
+
+	m_lightConstantBufferData.lightRadius.x += deltaLight * delta_time;
+
+	if (m_lightConstantBufferData.lightRadius.x >= 5)
+	{
+		m_lightConstantBufferData.lightRadius.x = 5;
+		deltaLight *= -1;
+	}
+	else if (m_lightConstantBufferData.lightRadius.x <= 1)
+	{
+		m_lightConstantBufferData.lightRadius.x = 1;
+		deltaLight *= -1;
+	}
+}
+
+void Model::SetSpotLight(XMFLOAT4 spotPosition, XMFLOAT4 spotLightColor, XMFLOAT4 coneRatio, XMFLOAT4 coneDirection)
+{
+	m_lightConstantBufferData.spotLightPosition = spotPosition;
+	m_lightConstantBufferData.spotLightColor = spotLightColor;
+	m_lightConstantBufferData.coneRatio = coneRatio;
+	m_lightConstantBufferData.typeOfLight.z = 1;
+	m_lightConstantBufferData.coneDirection = coneDirection;
+}
+
+void Model::UpdateSpotLight(XMFLOAT4X4 camera, XMVECTOR camTarget)
+{
+	m_lightConstantBufferData.spotLightPosition.x = camera._41;
+	m_lightConstantBufferData.spotLightPosition.y = camera._42 + 0.699999928;
+	m_lightConstantBufferData.spotLightPosition.z = camera._43 - 1.5f;
+
+	m_lightConstantBufferData.coneDirection.x = XMVectorGetX(camTarget) - m_lightConstantBufferData.spotLightPosition.x;
+	m_lightConstantBufferData.coneDirection.y = XMVectorGetY(camTarget) - m_lightConstantBufferData.spotLightPosition.y;
+	m_lightConstantBufferData.coneDirection.z = XMVectorGetZ(camTarget) - m_lightConstantBufferData.spotLightPosition.z;
+}
+
+void Model::Rotate(float radians)
+{
+	//XMFLOAT3 position = { m_constantBufferData.model._14, m_constantBufferData.model._24, m_constantBufferData.model._34 };
+
+	//Translate({ 0, 0, 0 }); //translate to origin
+
+	XMStoreFloat4x4(&m_constantBufferData.model, XMMatrixTranspose(XMMatrixRotationY(radians)));
+	//XMStoreFloat4x4(&m_constantBufferData.model, XMMatrixTranspose(XMMatrixMultiply(XMMatrixTranslation(position.x, position.y, position.z), XMMatrixRotationY(radians))));
+	//Translate(position); //translate back to original position
+
+	//XMFLOAT4X4 final;
+
+	//XMStoreFloat4x4(&final, XMMatrixTranspose(XMMatrixRotationY(radians) * XMMatrixTranslation(position.x, position.y, position.z)));
+
+	//final._14 = position.x;
+	//final._24 = position.y;
+	//final._34 = position.z;
+
+	//m_constantBufferData.model = final;
 }

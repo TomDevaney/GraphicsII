@@ -64,9 +64,6 @@
     <ClCompile Include="pch.cpp">
       <Filter>Content\Source</Filter>
     </ClCompile>
-    <ClCompile Include="Common\DDSTextureLoader.cpp">
-      <Filter>Common\Source</Filter>
-    </ClCompile>
     <ClCompile Include="Common\DeviceResources.cpp">
       <Filter>Common\Source</Filter>
     </ClCompile>
@@ -74,6 +71,12 @@
       <Filter>Content\My Stuff</Filter>
     </ClCompile>
     <ClCompile Include="Content\DDSTextureLoader.cpp">
+      <Filter>Content\My Stuff</Filter>
+    </ClCompile>
+    <ClCompile Include="Skybox.cpp">
+      <Filter>Content\My Stuff</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
       <Filter>Content\My Stuff</Filter>
     </ClCompile>
   </ItemGroup>
@@ -96,9 +99,6 @@
     <ClInclude Include="pch.h">
       <Filter>Content\Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Common\DDSTextureLoader.h">
-      <Filter>Common\Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Common\DeviceResources.h">
       <Filter>Common\Headers</Filter>
     </ClInclude>
@@ -117,12 +117,24 @@
     <ClInclude Include="Content\DDSTextureLoader.h">
       <Filter>Content\My Stuff</Filter>
     </ClInclude>
+    <ClInclude Include="Skybox.h">
+      <Filter>Content\My Stuff</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>Content\My Stuff</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\StoreLogo.png">
       <Filter>Assets</Filter>
     </Image>
     <Image Include="Assets\Diffuse_Fuzzy_Corrupt.dds">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Diffuse_Treehouse.dds">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\hotelCubeMap.dds">
       <Filter>Assets</Filter>
     </Image>
   </ItemGroup>
@@ -151,6 +163,9 @@
       <Filter>Assets</Filter>
     </Object>
     <Object Include="Assets\Fuzzy Goomba.obj">
+      <Filter>Assets</Filter>
+    </Object>
+    <Object Include="Assets\Tree.obj">
       <Filter>Assets</Filter>
     </Object>
   </ItemGroup>

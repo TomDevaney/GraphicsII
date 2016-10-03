@@ -5,6 +5,7 @@
 #include "..\Common\StepTimer.h"
 #include "Defines.h"
 #include "DDSTextureLoader.h"
+#include "Scene.h"
 
 namespace DX11UWA
 {
@@ -65,6 +66,14 @@ namespace DX11UWA
 		//My Models
 		Model pyramid;
 		Model goomba;
+		Model tree;
+		//Scene scene;
+
+		//For spotlight
+		XMVECTOR camTarget;
+		XMMATRIX camRotationMatrix;
+		float camYaw = 0;
+		float camPitch = 0;
 	};
 }
 
