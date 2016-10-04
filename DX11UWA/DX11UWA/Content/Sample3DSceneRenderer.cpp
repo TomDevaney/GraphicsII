@@ -98,7 +98,7 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 	camTarget = XMVectorSet(m_camera._41, m_camera._42, m_camera._43, m_camera._44) + camTarget; //position + old camtarget = new camtarget
 
 	//Set spotlight to camera position
-	goomba.UpdateSpotLight(m_camera, camTarget);
+	//goomba.UpdateSpotLight(m_camera, camTarget);
 }
 
 // Rotate the 3D cube model a set amount of radians.
@@ -373,8 +373,8 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	//goomba.SetNormalPath("Assets/Normal_Fuzzy.dds");
 	goomba.SetInstanceData(500, 1);
 	goomba.SetDirectionalLight({ 0.577f, 0.577f, -0.577f, 0 }, { 0.75f, 0.75f, 0.94f, 1.0f }, { 0.3f, 0.3f, 0.3f, 0.3f });
-	goomba.SetPointLight({ 1, 4.0f, 1, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
-	goomba.SetSpotLight({ 0, 0, 0, 0 }, { 1.0f, 1.0f, 1.0f, 0 }, { 0.9f, 0, 0, 0 }, {0, 0, 1, 0 });
+	goomba.SetPointLight({ 2, 3.0f, 2, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
+	goomba.SetSpotLight({ 5, 6, 5, 0 }, { 1.0f, 1.0f, 1.0f, 0 }, { 0.9f, 0, 0, 0 }, { 0, -1, 0, 0 });
 	goomba.ReadFile();
 	goomba.CalculateNewNormalsTangentsNormals();
 	goomba.CreateDeviceDependentResources(m_deviceResources);
