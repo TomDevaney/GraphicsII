@@ -8,12 +8,14 @@ class Model
 private:
 	string filePath;
 	string texturePath;
+	string normalPath;
 
 	//const OBJ_VERT *modelData;
 	//unsigned int numVerts;
 
 	vector<Vertex> realVertices;
 	vector<unsigned int> bufferIndex;
+
 
 	std::shared_ptr<DX::DeviceResources> m_deviceResources;
 
@@ -25,6 +27,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11PixelShader>	m_pixelShader;
 
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_shaderResourceView;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_normalShaderResourceView;;
 	//Microsoft::WRL::ComPtr<ID3D11SamplerState> m_samplerState;
 
 	uint32	m_indexCount;
@@ -42,6 +45,11 @@ private:
 	LightingConstantBuffer m_lightConstantBufferData;
 	float deltaLight = 1;
 
+	//Skybox members
+	bool isSkybox;
+
+	void CalculateTangentBinormal(Vertex v1, Vertex v2, Vertex v3, XMFLOAT3 &tangent, XMFLOAT3 &binormal); //helper function
+	void CalculateNewNormal(XMFLOAT3 tangent, XMFLOAT3 binormal, XMFLOAT3 &normal);
 public:
 	//~Model();
 	void ReadFile();
@@ -61,4 +69,6 @@ public:
 	void SetSpotLight(XMFLOAT4 spotPosition, XMFLOAT4 spotLightColor, XMFLOAT4 coneRatio, XMFLOAT4 coneDirection);
 	void UpdateLightRadius(DX::StepTimer const& timer);
 	void UpdateSpotLight(XMFLOAT4X4 camera, XMVECTOR camTarget);
+	void SetNormalPath(string path);
+	void CalculateNewNormalsTangentsNormals();
 };

@@ -58,6 +58,7 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources(void)
 	pyramid.SetProjection(XMMatrixTranspose(perspectiveMatrix * orientationMatrix));
 	goomba.SetProjection(XMMatrixTranspose(perspectiveMatrix * orientationMatrix));
 	tree.SetProjection(XMMatrixTranspose(perspectiveMatrix * orientationMatrix));
+	skyBox.SetProjection(XMMatrixTranspose(perspectiveMatrix * orientationMatrix));
 
 	// Eye is at (0,0.7,1.5), looking at point (0,-0.1,0) with the up-vector along the y-axis.
 	static const XMVECTORF32 eye = { 0.0f, 0.7f, -1.5f, 0.0f };
@@ -244,6 +245,7 @@ void Sample3DSceneRenderer::Render(void)
 	pyramid.SetView(XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
 	goomba.SetView(XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
 	tree.SetView(XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
+	skyBox.SetView(XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
 
 	// Prepare the constant buffer to send it to the graphics device.
 	context->UpdateSubresource1(m_constantBuffer.Get(), 0, NULL, &m_constantBufferData, 0, 0, 0);
@@ -268,6 +270,7 @@ void Sample3DSceneRenderer::Render(void)
 	//Draw all of my models
 	pyramid.Render();
 	goomba.Render();
+	//skyBox.Render();
 	//tree.Render();
 }
 
@@ -367,14 +370,24 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 
 	goomba.SetFilePath("Assets/Fuzzy Goomba.obj");
 	goomba.SetTexturePath("Assets/Diffuse_Fuzzy_Corrupt.dds");
+	//goomba.SetNormalPath("Assets/Normal_Fuzzy.dds");
 	goomba.SetInstanceData(500, 1);
 	goomba.SetDirectionalLight({ 0.577f, 0.577f, -0.577f, 0 }, { 0.75f, 0.75f, 0.94f, 1.0f }, { 0.3f, 0.3f, 0.3f, 0.3f });
 	goomba.SetPointLight({ 1, 4.0f, 1, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
 	goomba.SetSpotLight({ 0, 0, 0, 0 }, { 1.0f, 1.0f, 1.0f, 0 }, { 0.9f, 0, 0, 0 }, {0, 0, 1, 0 });
 	goomba.ReadFile();
+	goomba.CalculateNewNormalsTangentsNormals();
 	goomba.CreateDeviceDependentResources(m_deviceResources);
 	goomba.Translate({ 0, 2.0f, 0 });
 
+	//skyBox.SetFilePath("Assets/SkyBox.obj");
+	//skyBox.SetTexturePath("Assets/hotelCubeMap.dds");
+	//skyBox.SetDirectionalLight({ 0.577f, 0.577f, -0.577f, 0 }, { 0.75f, 0.75f, 0.94f, 1.0f }, { 0.3f, 0.3f, 0.3f, 0.3f });
+	//skyBox.SetPointLight({ 1, 4.0f, 1, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
+	//skyBox.SetSpotLight({ 0, 0, 0, 0 }, { 1.0f, 1.0f, 1.0f, 0 }, { 0.9f, 0, 0, 0 }, { 0, 0, 1, 0 });
+	//skyBox.ReadFile();
+	//skyBox.CreateDeviceDependentResources(m_deviceResources);
+	//skyBox.Translate({ -5, 0, 0 });
 
 	//tree.SetFilePath("Assets/Tree.obj");
 	//tree.SetTexturePath("Assets/Diffuse_Treehouse.dds");

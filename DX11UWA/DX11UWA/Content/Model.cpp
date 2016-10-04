@@ -180,10 +180,12 @@ void Model::CreateDeviceDependentResources(const std::shared_ptr<DX::DeviceResou
 		);
 
 		static const D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
-		{	
+		{
 			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 
 			{ "INSTANCEPOS", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 		};
@@ -209,7 +211,7 @@ void Model::CreateDeviceDependentResources(const std::shared_ptr<DX::DeviceResou
 				&m_pixelShader
 			)
 		);
-		 
+
 		//Create constant buffer to matrices and isInstance
 		CD3D11_BUFFER_DESC constantBufferDesc(sizeof(ModelViewProjectionConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
 		DX::ThrowIfFailed(
@@ -303,6 +305,10 @@ void Model::CreateDeviceDependentResources(const std::shared_ptr<DX::DeviceResou
 	//Handle texture
 	wstring wideTexturePath = wstring(texturePath.begin(), texturePath.end());
 	HRESULT hr = CreateDDSTextureFromFile(m_deviceResources->GetD3DDevice(), wideTexturePath.c_str(), nullptr, &m_shaderResourceView);
+
+	//Handle normal texture
+	wstring wideNormalTexturePath = wstring(normalPath.begin(), normalPath.end());
+	HRESULT hr2 = CreateDDSTextureFromFile(m_deviceResources->GetD3DDevice(), wideNormalTexturePath.c_str(), nullptr, &m_normalShaderResourceView);
 
 	createModelTask.then([this]() {
 		m_loadingComplete = true;
@@ -415,6 +421,8 @@ void Model::Render()
 	);
 
 	context->PSSetShaderResources(0, 1, m_shaderResourceView.GetAddressOf());
+	context->PSSetShaderResources(1, 1, m_normalShaderResourceView.GetAddressOf());
+
 	//context->PSSetSamplers(0, 1, m_samplerState.GetAddressOf());
 
 	// Draw the objects.
@@ -439,7 +447,7 @@ void Model::Translate(XMFLOAT3 distance)
 
 void Model::SetProjection(XMMATRIX projection)
 {
-	XMStoreFloat4x4(&m_constantBufferData.projection ,projection);
+	XMStoreFloat4x4(&m_constantBufferData.projection, projection);
 }
 
 void Model::SetView(XMMATRIX view)
@@ -505,8 +513,8 @@ void Model::SetSpotLight(XMFLOAT4 spotPosition, XMFLOAT4 spotLightColor, XMFLOAT
 void Model::UpdateSpotLight(XMFLOAT4X4 camera, XMVECTOR camTarget)
 {
 	m_lightConstantBufferData.spotLightPosition.x = camera._41;
-	m_lightConstantBufferData.spotLightPosition.y = camera._42 + 0.699999928;
-	m_lightConstantBufferData.spotLightPosition.z = camera._43 - 1.5f;
+	m_lightConstantBufferData.spotLightPosition.y = camera._42 ;
+	m_lightConstantBufferData.spotLightPosition.z = camera._43 ;
 
 	m_lightConstantBufferData.coneDirection.x = XMVectorGetX(camTarget) - m_lightConstantBufferData.spotLightPosition.x;
 	m_lightConstantBufferData.coneDirection.y = XMVectorGetY(camTarget) - m_lightConstantBufferData.spotLightPosition.y;
@@ -532,4 +540,108 @@ void Model::Rotate(float radians)
 	//final._34 = position.z;
 
 	//m_constantBufferData.model = final;
+}
+
+void Model::SetNormalPath(string path)
+{
+	normalPath = path;
+}
+
+void Model::CalculateTangentBinormal(Vertex v1, Vertex v2, Vertex v3, XMFLOAT3 &tangent, XMFLOAT3 &binormal)
+{
+	XMFLOAT3 vector1, vector2;
+	XMFLOAT2 uvVector[2];
+	float den;
+	float length;
+
+	// Calculate the two vectors for this face.
+	vector1.x = v2.position.x - v1.position.x;
+	vector1.y = v2.position.y - v1.position.y;
+	vector1.z = v2.position.z - v1.position.z;
+
+	vector2.x = v3.position.x - v1.position.x;
+	vector2.y = v3.position.y - v1.position.y;
+	vector2.z = v3.position.z - v1.position.z;
+
+	// Calculate the uv vectors.
+	uvVector[0].x = v2.uv.x - v1.uv.x;
+	uvVector[0].y = v2.uv.y - v1.uv.y;
+
+	uvVector[1].x = v3.uv.x - v1.uv.x;
+	uvVector[1].y = v3.uv.y - v1.uv.y;
+
+	// Calculate the denominator of the tangent/binormal equation.
+	den = 1.0f / (uvVector[0].x * uvVector[1].y - uvVector[1].x * uvVector[0].y);
+
+	// Calculate the cross products and multiply by the coefficient to get the tangent and binormal.
+	tangent.x = (uvVector[1].y * vector1.x - uvVector[0].y * vector2.x) * den;
+	tangent.y = (uvVector[1].y * vector1.y - uvVector[0].y * vector2.y) * den;
+	tangent.z = (uvVector[1].y * vector1.z - uvVector[0].y * vector2.z) * den;
+
+	binormal.x = (uvVector[0].x * vector2.x - uvVector[1].x * vector1.x) * den;
+	binormal.y = (uvVector[0].x * vector2.y - uvVector[1].x * vector1.y) * den;
+	binormal.z = (uvVector[0].x * vector2.z - uvVector[1].x * vector1.z) * den;
+
+	// Calculate the length of this normal.
+	length = sqrt((tangent.x * tangent.x) + (tangent.y * tangent.y) + (tangent.z * tangent.z));
+
+	// Normalize the normal and then store it
+	tangent.x = tangent.x / length;
+	tangent.y = tangent.y / length;
+	tangent.z = tangent.z / length;
+
+	// Calculate the length of this normal.
+	length = sqrt((binormal.x * binormal.x) + (binormal.y * binormal.y) + (binormal.z * binormal.z));
+
+	// Normalize the normal and then store it
+	binormal.x = binormal.x / length;
+	binormal.y = binormal.y / length;
+	binormal.z = binormal.z / length;
+}
+
+void Model::CalculateNewNormal(XMFLOAT3 tangent, XMFLOAT3 binormal, XMFLOAT3 &normal)
+{
+	float length;
+
+	// Calculate the normal vector.
+	normal.x = (tangent.y * binormal.z) - (tangent.z * binormal.y);
+	normal.y = (tangent.z * binormal.x) - (tangent.x * binormal.z);
+	normal.z = (tangent.x * binormal.y) - (tangent.y * binormal.x);
+
+	// Calculate the length of the normal.
+	length = sqrt((normal.x * normal.x) + (normal.y * normal.y) + (normal.z * normal.z));
+
+	// Normalize the normal.
+	normal.x = normal.x / length;
+	normal.y = normal.y / length;
+	normal.z = normal.z / length;
+}
+
+void Model::CalculateNewNormalsTangentsNormals()
+{
+	XMFLOAT3 tangent;
+	XMFLOAT3 binormal;
+	XMFLOAT3 normal;
+
+	for (int i = 0; i < bufferIndex.size(); i += 3)
+	{
+		Vertex v1 = realVertices[bufferIndex[i]];
+		Vertex v2 = realVertices[bufferIndex[i + 1]];
+		Vertex v3 = realVertices[bufferIndex[i + 2]];
+
+		CalculateTangentBinormal(v1, v2, v3, tangent, binormal);
+		CalculateNewNormal(tangent, binormal, normal);
+
+		realVertices[bufferIndex[i]].normal = normal;
+		realVertices[bufferIndex[i]].tangent = tangent;
+		realVertices[bufferIndex[i]].binormal = binormal;
+
+		realVertices[bufferIndex[i + 1]].normal = normal;
+		realVertices[bufferIndex[i + 1]].tangent = tangent;
+		realVertices[bufferIndex[i + 1]].binormal = binormal;
+
+		realVertices[bufferIndex[i + 2]].normal = normal;
+		realVertices[bufferIndex[i + 2]].tangent = tangent;
+		realVertices[bufferIndex[i + 2]].binormal = binormal;
+	}
 }

@@ -67,6 +67,7 @@ namespace DX11UWA
 		Model pyramid;
 		Model goomba;
 		Model tree;
+		Model skyBox;
 		//Scene scene;
 
 		//For spotlight

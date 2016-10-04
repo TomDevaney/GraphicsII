@@ -23,6 +23,8 @@ struct Vertex
 	XMFLOAT3 position;
 	XMFLOAT2 uv;
 	XMFLOAT3 normal;
+	XMFLOAT3 tangent;
+	XMFLOAT3 binormal;
 
 	bool operator==(const Vertex& other) const
 	{

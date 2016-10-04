@@ -137,6 +137,9 @@
     <Image Include="Assets\hotelCubeMap.dds">
       <Filter>Assets</Filter>
     </Image>
+    <Image Include="Assets\Normal_Fuzzy.dds">
+      <Filter>Assets</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest" />
@@ -166,6 +169,9 @@
       <Filter>Assets</Filter>
     </Object>
     <Object Include="Assets\Tree.obj">
+      <Filter>Assets</Filter>
+    </Object>
+    <Object Include="Assets\SkyBox.obj">
       <Filter>Assets</Filter>
     </Object>
   </ItemGroup>
