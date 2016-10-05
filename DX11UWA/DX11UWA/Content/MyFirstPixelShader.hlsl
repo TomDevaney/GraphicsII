@@ -4,7 +4,8 @@ struct PixelShaderInput
 	float4 pos : SV_POSITION;
 	float2 uv : TEXCOORD;
 	float3 normal : NORMAL;
-	float4 worldPosition : POSITION;
+	float4 worldPosition : POSITION0;
+	float4 localPosition : POSITION1;
 	float3 tangent : TANGENT;
 	float3 binormal : BINORMAL;
 };
@@ -25,11 +26,14 @@ cbuffer LightingConstantBuffer : register(b0)
 	float4 spotLightColor;
 	float4 coneRatio; //treat as float
 	float4 coneDirection;
+
+	float4 isSkyBox;
+	float4 isNormalMap;
 };
 
 texture2D baseTexture : register(t0);
 texture2D normalTexture : register(t1);
-//texturecube skyBoxTexture : register(t1);
+TextureCube skyBoxTexture : register(t2);
 SamplerState filters[2] : register(s0);
 
 // A pass-through function for the (interpolated) color data.
@@ -41,11 +45,21 @@ float3 pointColor = 0;
 float3 spotColor = 0;
 float3 bumpMap = 0;
 
-color = baseTexture.Sample(filters[0], input.uv);
+if (isSkyBox.x)
+{
+	color = skyBoxTexture.Sample(filters[0], input.localPosition);
+}
+else
+{
+	color = baseTexture.Sample(filters[0], input.uv);
+}
 
-bumpMap = normalTexture.Sample(filters[0], input.uv);
-bumpMap = (bumpMap * 2.0f) - 1.0f;
-input.normal = normalize((bumpMap.x * input.tangent) + (bumpMap.y * input.binormal) + (bumpMap.z * input.normal));
+if (isNormalMap.x)
+{
+	bumpMap = normalTexture.Sample(filters[0], input.uv);
+	bumpMap = (bumpMap * 2.0f) - 1.0f;
+	input.normal = normalize((bumpMap.x * input.tangent) + (bumpMap.y * input.binormal) + (bumpMap.z * input.normal));
+}
 
 if (typeOfLight.x) //directional Light
 {

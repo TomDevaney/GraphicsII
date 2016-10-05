@@ -87,18 +87,19 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 	}
 
 	//handle camtarget
-	camRotationMatrix = XMMatrixRotationRollPitchYaw(camPitch, camYaw, 0);
-	camTarget = XMVector3TransformCoord({ 0, 0, 1, 0 }, camRotationMatrix);
-	camTarget = XMVector3Normalize(camTarget);
+	//camRotationMatrix = XMMatrixRotationRollPitchYaw(camPitch, camYaw, 0);
+	//camTarget = XMVector3TransformCoord({ 0, 0, 1, 0 }, camRotationMatrix);
+	//camTarget = XMVector3Normalize(camTarget);
 
 	// Update or move camera here
 	UpdateCamera(timer, 1.0f, 0.75f);
 
 	//update camtarget
-	camTarget = XMVectorSet(m_camera._41, m_camera._42, m_camera._43, m_camera._44) + camTarget; //position + old camtarget = new camtarget
+	//camTarget = XMVectorSet(m_camera._41, m_camera._42, m_camera._43, m_camera._44) + camTarget; //position + old camtarget = new camtarget
 
 	//Set spotlight to camera position
-	//goomba.UpdateSpotLight(m_camera, camTarget);
+	skyBox.UpdateSpotLight(m_camera);
+	goomba.UpdateSpotLight(m_camera);
 }
 
 // Rotate the 3D cube model a set amount of radians.
@@ -270,7 +271,7 @@ void Sample3DSceneRenderer::Render(void)
 	//Draw all of my models
 	pyramid.Render();
 	goomba.Render();
-	//skyBox.Render();
+	skyBox.Render();
 	//tree.Render();
 }
 
@@ -374,20 +375,22 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	goomba.SetInstanceData(500, 1);
 	goomba.SetDirectionalLight({ 0.577f, 0.577f, -0.577f, 0 }, { 0.75f, 0.75f, 0.94f, 1.0f }, { 0.3f, 0.3f, 0.3f, 0.3f });
 	goomba.SetPointLight({ 2, 3.0f, 2, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
-	goomba.SetSpotLight({ 5, 6, 5, 0 }, { 1.0f, 1.0f, 1.0f, 0 }, { 0.9f, 0, 0, 0 }, { 0, -1, 0, 0 });
+	goomba.SetSpotLight({ 0, 0, 0, 0 }, { 1.0f, 1.0f, 1.0f, 0 }, { 0.9f, 0, 0, 0 }, { 0, 0, 1, 0 });
 	goomba.ReadFile();
 	goomba.CalculateNewNormalsTangentsNormals();
 	goomba.CreateDeviceDependentResources(m_deviceResources);
 	goomba.Translate({ 0, 2.0f, 0 });
 
-	//skyBox.SetFilePath("Assets/SkyBox.obj");
-	//skyBox.SetTexturePath("Assets/hotelCubeMap.dds");
-	//skyBox.SetDirectionalLight({ 0.577f, 0.577f, -0.577f, 0 }, { 0.75f, 0.75f, 0.94f, 1.0f }, { 0.3f, 0.3f, 0.3f, 0.3f });
-	//skyBox.SetPointLight({ 1, 4.0f, 1, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
-	//skyBox.SetSpotLight({ 0, 0, 0, 0 }, { 1.0f, 1.0f, 1.0f, 0 }, { 0.9f, 0, 0, 0 }, { 0, 0, 1, 0 });
-	//skyBox.ReadFile();
-	//skyBox.CreateDeviceDependentResources(m_deviceResources);
-	//skyBox.Translate({ -5, 0, 0 });
+	skyBox.SetFilePath("Assets/SkyBox.obj");
+	skyBox.SetTexturePath("Assets/TestCubeMap.dds");
+	skyBox.SetIsSkybox(true);
+	skyBox.SetDirectionalLight({ 0.577f, 0.577f, -0.577f, 0 }, { 0.75f, 0.75f, 0.94f, 1.0f }, { 0.3f,  0.3f,  0.3f,  0.3f });
+	skyBox.SetPointLight({ 1, 4.0f, 1, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
+	skyBox.SetSpotLight({ 0, 0, 0, 0 }, { 1.0f, 1.0f, 1.0f, 0 }, { 0.9f, 0, 0, 0 }, { 0, 0, 1, 0 });
+	skyBox.ReadFile();
+	skyBox.CreateDeviceDependentResources(m_deviceResources);
+	skyBox.Translate({ 0, 0, 0 });
+	skyBox.SetScaleMatrix(100, 100, 100);
 
 	//tree.SetFilePath("Assets/Tree.obj");
 	//tree.SetTexturePath("Assets/Diffuse_Treehouse.dds");

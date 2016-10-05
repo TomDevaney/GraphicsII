@@ -5,7 +5,7 @@ cbuffer ModelViewProjectionConstantBuffer : register(b0)
 	matrix view;
 	matrix projection;
 	float4 isInstance;
-	//float4 hasNormMap;
+	float4 isSkyBox;
 };
 
 // Per-vertex data used as input to the vertex shader.
@@ -30,6 +30,7 @@ struct PixelShaderInput
 	float2 uv : TEXCOORD;
 	float3 normal : NORMAL;
 	float4 worldPosition : POSITION;
+	float4 localPosition : POSITION1;
 	float3 tangent : TANGENT;
 	float3 binormal : BINORMAL;
 };
@@ -53,6 +54,13 @@ PixelShaderInput main(VertexShaderInput input, InstanceData instanceInput)
 
 	norm = float4(input.normal, 0);
 
+	if (isSkyBox.x)
+	{
+		output.localPosition.x = pos.x;
+		output.localPosition.y = pos.y;
+		output.localPosition.z = pos.z;
+	}
+
 	// Transform the vertex position into projected space.
 	pos = mul(pos, model);
 	output.worldPosition = pos;
@@ -60,10 +68,8 @@ PixelShaderInput main(VertexShaderInput input, InstanceData instanceInput)
 	pos = mul(pos, projection);
 	output.pos = pos;
 
-	//Transform the normal position into projected space
+	//Transform the normal position into world space
 	norm = mul(norm, model);
-	//norm = mul(norm, view);
-	//norm = mul(norm, projection);
 	output.normal = norm;
 
 	// Pass the color through without modification.

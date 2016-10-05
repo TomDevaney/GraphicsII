@@ -128,24 +128,29 @@
     <Image Include="Assets\StoreLogo.png">
       <Filter>Assets</Filter>
     </Image>
-    <Image Include="Assets\Diffuse_Fuzzy_Corrupt.dds">
-      <Filter>Assets</Filter>
-    </Image>
-    <Image Include="Assets\Diffuse_Treehouse.dds">
+    <Image Include="Assets\TestCubeMap.dds">
       <Filter>Assets</Filter>
     </Image>
     <Image Include="Assets\hotelCubeMap.dds">
       <Filter>Assets</Filter>
     </Image>
-    <Image Include="Assets\Normal_Fuzzy.dds">
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="DX11UWA_TemporaryKey.pfx">
       <Filter>Assets</Filter>
-    </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <AppxManifest Include="Package.appxmanifest" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="DX11UWA_TemporaryKey.pfx" />
+    </None>
+    <None Include="Assets\Fuzzy Goomba.obj">
+      <Filter>Assets</Filter>
+    </None>
+    <None Include="Assets\SkyBox.obj">
+      <Filter>Assets</Filter>
+    </None>
+    <None Include="Assets\test pyramid.obj">
+      <Filter>Assets</Filter>
+    </None>
+    <None Include="Assets\Tree.obj">
+      <Filter>Assets</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Content\SamplePixelShader.hlsl">
@@ -160,19 +165,27 @@
     <FxCompile Include="Content\MyFirstVertexShader.hlsl">
       <Filter>Content\My Stuff</Filter>
     </FxCompile>
+    <FxCompile Include="SkyBoxVertexShader.hlsl">
+      <Filter>Content\My Stuff</Filter>
+    </FxCompile>
+    <FxCompile Include="SkyBoxPixelShader.hlsl">
+      <Filter>Content\My Stuff</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <Object Include="Assets\test pyramid.obj">
+    <Media Include="Assets\Diffuse_Fuzzy_Corrupt.dds">
       <Filter>Assets</Filter>
-    </Object>
-    <Object Include="Assets\Fuzzy Goomba.obj">
+    </Media>
+    <Media Include="Assets\Diffuse_Treehouse.dds">
       <Filter>Assets</Filter>
-    </Object>
-    <Object Include="Assets\Tree.obj">
+    </Media>
+    <Media Include="Assets\Normal_Fuzzy.dds">
       <Filter>Assets</Filter>
-    </Object>
-    <Object Include="Assets\SkyBox.obj">
+    </Media>
+  </ItemGroup>
+  <ItemGroup>
+    <AppxManifest Include="Package.appxmanifest">
       <Filter>Assets</Filter>
-    </Object>
+    </AppxManifest>
   </ItemGroup>
 </Project>

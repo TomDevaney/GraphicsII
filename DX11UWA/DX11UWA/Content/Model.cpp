@@ -167,6 +167,11 @@ void Model::CreateDeviceDependentResources(const std::shared_ptr<DX::DeviceResou
 	// Load shaders asynchronously.
 	auto loadVSTask = DX::ReadDataAsync(L"MyFirstVertexShader.cso");
 	auto loadPSTask = DX::ReadDataAsync(L"MyFirstPixelShader.cso");
+	//auto loadVSTask2 = DX::ReadDataAsync(L"SkyBoxVertexShader.cso");
+	//auto loadPSTask2 = DX::ReadDataAsync(L"SkyBoxPixelShader.cso");
+
+//	m_lightConstantBufferData.isSkyBox.x = 0;
+
 
 	// After the vertex shader file is loaded, create the shader and input layout.
 	auto createVSTask = loadVSTask.then([this](const std::vector<byte>& fileData) {
@@ -232,6 +237,32 @@ void Model::CreateDeviceDependentResources(const std::shared_ptr<DX::DeviceResou
 			)
 		);
 	});
+
+	//if (isSkybox)
+	//{
+	//	auto createVSTask = loadVSTask2.then([this](const std::vector<byte>& fileData) {
+	//		DX::ThrowIfFailed(
+	//			m_deviceResources->GetD3DDevice()->CreateVertexShader(
+	//				&fileData[0],
+	//				fileData.size(),
+	//				nullptr,
+	//				&m_skyBoxVertexShader
+	//			)
+	//		);
+	//	});
+
+	//	//Create pixel shader
+	//	auto createPSTask = loadPSTask2.then([this](const std::vector<byte>& fileData) {
+	//		DX::ThrowIfFailed(
+	//			m_deviceResources->GetD3DDevice()->CreatePixelShader(
+	//				&fileData[0],
+	//				fileData.size(),
+	//				nullptr,
+	//				&m_skyBoxPixelShader
+	//			)
+	//		);
+	//	});
+	//}
 
 	// Once both shaders are loaded, create the mesh.
 	auto createModelTask = (createPSTask && createVSTask).then([this]() {
@@ -389,11 +420,22 @@ void Model::Render()
 	context->IASetInputLayout(m_inputLayout.Get());
 
 	// Attach our vertex shader.
-	context->VSSetShader(
-		m_vertexShader.Get(),
-		nullptr,
-		0
-	);
+	//if (isSkybox)
+	//{
+	//	context->VSSetShader(
+	//		m_skyBoxVertexShader.Get(),
+	//		nullptr,
+	//		0
+	//	);
+	//}
+	//else
+	{
+		context->VSSetShader(
+			m_vertexShader.Get(),
+			nullptr,
+			0
+		);
+	}
 
 	// Send the constant buffer to the graphics device.
 	context->VSSetConstantBuffers1(
@@ -414,13 +456,32 @@ void Model::Render()
 	);
 
 	// Attach our pixel shader.
-	context->PSSetShader(
-		m_pixelShader.Get(),
-		nullptr,
-		0
-	);
+	//if (isSkybox)
+	//{
+	//	context->PSSetShader(
+	//		m_skyBoxPixelShader.Get(),
+	//		nullptr,
+	//		0
+	//	);
+	//}
+	//else
+	{
+		context->PSSetShader(
+			m_pixelShader.Get(),
+			nullptr,
+			0
+		);
+	}
 
-	context->PSSetShaderResources(0, 1, m_shaderResourceView.GetAddressOf());
+	if (isSkybox)
+	{
+		context->PSSetShaderResources(2, 1, m_shaderResourceView.GetAddressOf());
+	}
+	else
+	{
+		context->PSSetShaderResources(0, 1, m_shaderResourceView.GetAddressOf());
+	}
+
 	context->PSSetShaderResources(1, 1, m_normalShaderResourceView.GetAddressOf());
 
 	//context->PSSetSamplers(0, 1, m_samplerState.GetAddressOf());
@@ -510,15 +571,15 @@ void Model::SetSpotLight(XMFLOAT4 spotPosition, XMFLOAT4 spotLightColor, XMFLOAT
 	m_lightConstantBufferData.coneDirection = coneDirection;
 }
 
-void Model::UpdateSpotLight(XMFLOAT4X4 camera, XMVECTOR camTarget)
+void Model::UpdateSpotLight(XMFLOAT4X4 camera)
 {
 	m_lightConstantBufferData.spotLightPosition.x = camera._41;
-	m_lightConstantBufferData.spotLightPosition.y = camera._42 ;
-	m_lightConstantBufferData.spotLightPosition.z = camera._43 ;
+	m_lightConstantBufferData.spotLightPosition.y = camera._42;
+	m_lightConstantBufferData.spotLightPosition.z = camera._43;
 
-	m_lightConstantBufferData.coneDirection.x = XMVectorGetX(camTarget) - m_lightConstantBufferData.spotLightPosition.x;
-	m_lightConstantBufferData.coneDirection.y = XMVectorGetY(camTarget) - m_lightConstantBufferData.spotLightPosition.y;
-	m_lightConstantBufferData.coneDirection.z = XMVectorGetZ(camTarget) - m_lightConstantBufferData.spotLightPosition.z;
+	m_lightConstantBufferData.coneDirection.x = camera._31;
+	m_lightConstantBufferData.coneDirection.y = camera._32;
+	m_lightConstantBufferData.coneDirection.z = camera._33;
 }
 
 void Model::Rotate(float radians)
@@ -545,6 +606,7 @@ void Model::Rotate(float radians)
 void Model::SetNormalPath(string path)
 {
 	normalPath = path;
+	m_lightConstantBufferData.isNormalMap.x = 1;
 }
 
 void Model::CalculateTangentBinormal(Vertex v1, Vertex v2, Vertex v3, XMFLOAT3 &tangent, XMFLOAT3 &binormal)
@@ -644,4 +706,24 @@ void Model::CalculateNewNormalsTangentsNormals()
 		realVertices[bufferIndex[i + 2]].tangent = tangent;
 		realVertices[bufferIndex[i + 2]].binormal = binormal;
 	}
+}
+
+void Model::SetIsSkybox(bool toggle)
+{
+	isSkybox = toggle;
+	m_lightConstantBufferData.isSkyBox.x = 1;
+	m_constantBufferData.isSkyBox.x = 1;
+}
+
+void Model::SetIdentityMatrix()
+{
+	XMStoreFloat4x4(&m_constantBufferData.model, XMMatrixIdentity());
+}
+
+void Model::SetScaleMatrix(float x, float y, float z)
+{
+	m_constantBufferData.model._11 = 1 * x;
+	m_constantBufferData.model._22 = 1 * y;
+	m_constantBufferData.model._33 = 1 * z;
+
 }

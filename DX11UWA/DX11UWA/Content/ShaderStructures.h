@@ -9,6 +9,7 @@ namespace DX11UWA
 		DirectX::XMFLOAT4X4 view;
 		DirectX::XMFLOAT4X4 projection;
 		DirectX::XMFLOAT4 isInstance; //just a bool
+		DirectX::XMFLOAT4 isSkyBox;
 	};
 
 	// Used to send per-vertex data to the vertex shader.
@@ -46,5 +47,7 @@ namespace DX11UWA
 		DirectX::XMFLOAT4 coneRatio;
 		DirectX::XMFLOAT4 coneDirection;
 
+		DirectX::XMFLOAT4 isSkyBox;
+		DirectX::XMFLOAT4 isNormalMap;
 	};
 }
