@@ -8,7 +8,7 @@ struct PixelShaderInput
 	float4 localPosition : POSITION1;
 	float3 tangent : TANGENT;
 	float3 binormal : BINORMAL;
-	float3 pixelColor : COLOR;
+	//float3 pixelColor : COLOR;
 };
 
 cbuffer LightingConstantBuffer : register(b0)
@@ -47,11 +47,11 @@ float3 spotColor = 0;
 float3 bumpMap = 0;
 float4 finalColor;
 
-if (input.pixelColor.x || input.pixelColor.y || input.pixelColor.z)
-{
-	finalColor = float4(input.pixelColor, 1);
-}
-else
+//if (input.pixelColor.x || input.pixelColor.y || input.pixelColor.z)
+//{
+//	finalColor = float4(input.pixelColor, 1);
+//}
+//else
 {
 	if (isSkyBox.x)
 	{

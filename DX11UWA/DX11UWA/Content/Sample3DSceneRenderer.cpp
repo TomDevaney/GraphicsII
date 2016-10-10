@@ -85,7 +85,8 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 		Rotate(radians);
 		for (int i = 0; i < models.size(); ++i)
 		{
-			models[i]->UpdateLightRadius(timer);
+			//models[i]->UpdateLightRadius(timer, 1, 5);
+			models[i]->UpdatePointLightPosition(timer, 0, 10);
 		}
 	}
 
@@ -163,6 +164,20 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 		XMMATRIX temp_camera = XMLoadFloat4x4(&m_camera);
 		XMMATRIX result = XMMatrixMultiply(translation, temp_camera);
 		XMStoreFloat4x4(&m_camera, result);
+	}
+	if (m_kbuttons[VK_LEFT])
+	{
+		for (int i = 0; i < models.size(); ++i)
+		{
+			models[i]->UpdateDirectionalLight(timer, true);
+		}
+	}
+	if (m_kbuttons[VK_RIGHT])
+	{
+		for (int i = 0; i < models.size(); ++i)
+		{
+			models[i]->UpdateDirectionalLight(timer, false);
+		}
 	}
 
 	if (m_currMousePos) 
@@ -389,12 +404,12 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	});
 
 	//Load in models and Create device dependent resources
-	//Model pyramid;
 
+	//handle pyramid
 	pyramid.SetFilePath("Assets/test pyramid.obj");
 	pyramid.SetTexturePath("Assets/cartoonWood_seamless.dds");
 	pyramid.SetDirectionalLight({ 0.577f, 0.577f, -0.577f, 0 }, { 0.75f, 0.75f, 0.94f, 1.0f }, { 0.3f, 0.3f, 0.3f, 0.3f });
-	pyramid.SetPointLight({ 2, 3.0f, 2, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
+	//pyramid.SetPointLight({ 2, 3.0f, 2, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
 	pyramid.ReadFile();
 	pyramid.CreateDeviceDependentResources(m_deviceResources);
 	pyramid.Translate({ 1.0f, 1.0f, 1.0f });
@@ -402,29 +417,27 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 
 	models.push_back(&pyramid);
 
-	//Model goomba;
-
+	//handle goombas
 	goomba.SetFilePath("Assets/Fuzzy Goomba.obj");
 	goomba.SetTexturePath("Assets/Diffuse_Fuzzy_Corrupt.dds");
 	goomba.SetNormalPath("Assets/Normal_Fuzzy.dds");
 	goomba.SetInstanceData(500, 1);
 	goomba.SetDirectionalLight({ 0.577f, 0.577f, -0.577f, 0 }, { 0.75f, 0.75f, 0.94f, 1.0f }, { 0.3f, 0.3f, 0.3f, 0.3f });
-	goomba.SetPointLight({ 2, 3.0f, 2, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
+	//goomba.SetPointLight({ 2, 3.0f, 2, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
 //	goomba.SetSpotLight({ 5, 6, 5, 0 }, { 1.0f, 1.0f, 1.0f, 0 }, { 0.9f, 0, 0, 0 }, { 0, -1, 0, 0 });
 	goomba.SetSpotLight({ 0, 0, 0, 0 }, { 1.0f, 1.0f, 1.0f, 0 }, { 0.9f, 0, 0, 0 }, { 0, 0, 1, 0 });
 	goomba.ReadFile();
-	//goomba.CalculateNewNormalsTangentsNormals(); //breaks my spotlight (and potentially other lights) (for spotlight, it flipped my normals)
+	goomba.CalculateNewNormalsTangentsNormals(); //breaks my spotlight (and potentially other lights) (for spotlight, it flipped my normals)
 	goomba.CreateDeviceDependentResources(m_deviceResources);
 	goomba.Translate({ 0, 2.0f, 0 });
 
 	models.push_back(&goomba);
 
-	//Model platform;
-
+	//handle platform
 	platform.SetFilePath("Assets/Platform.obj");
 	platform.SetTexturePath("Assets/cartoonWood_seamless.dds");
 	platform.SetDirectionalLight({ 0.577f, 0.577f, -0.577f, 0 }, { 0.75f, 0.75f, 0.94f, 1.0f }, { 0.3f, 0.3f, 0.3f, 0.3f });
-	platform.SetPointLight({ 2, 3.0f, 2, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
+	//platform.SetPointLight({ 2, 3.0f, 2, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
 	//platform.SetSpotLight({ 5, 6, 5, 0 }, { 1.0f, 1.0f, 1.0f, 0 }, { 0.9f, 0, 0, 0 }, { 0, -1, 0, 0 });
 	platform.SetSpotLight({ 0, 0, 0, 0 }, { 1.0f, 1.0f, 1.0f, 0 }, { 0.9f, 0, 0, 0 }, { 0, 0, 1, 0 });
 	platform.ReadFile();
@@ -434,8 +447,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 
 	models.push_back(&platform);
 
-	//Model ground;
-
+	//handle ground
 	vector<Vertex> points;
 
 	Vertex point = { XMFLOAT3{-5.0f, 1.6f, 2.0f} };
@@ -445,10 +457,10 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	ground.SetFilePath("Assets/Platform.obj");
 	ground.SetTexturePath("Assets/brownishDirt_seamless.dds");
 	ground.SetDirectionalLight({ 0.577f, 0.577f, -0.577f, 0 }, { 0.75f, 0.75f, 0.94f, 1.0f }, { 0.3f, 0.3f, 0.3f, 0.3f });
-	ground.SetPointLight({ 2, 3.0f, 2, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
+	//ground.SetPointLight({ 2, 3.0f, 2, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
 	//ground.SetSpotLight({ 5, 6, 5, 0 }, { 1.0f, 1.0f, 1.0f, 0 }, { 0.9f, 0, 0, 0 }, { 0, -1, 0, 0 });
 	ground.SetSpotLight({ 0, 0, 0, 0 }, { 1.0f, 1.0f, 1.0f, 0 }, { 0.9f, 0, 0, 0 }, { 0, 0, 1, 0 });
-	ground.SetGeometryShader(points);
+	//ground.SetGeometryShader(points);
 	ground.ReadFile();
 	ground.CreateDeviceDependentResources(m_deviceResources);
 	ground.Translate({ -5.0f, 1.5f, 2.0f });
@@ -456,20 +468,16 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 
 	models.push_back(&ground);
 
-	//Model skyBox;
-
 	skyBox.SetFilePath("Assets/SkyBox.obj");
 	skyBox.SetTexturePath("Assets/hotelCubeMap1024.dds");
 	skyBox.SetIsSkybox(true);
-	skyBox.SetDirectionalLight({ 0.577f, 0.577f, -0.577f, 0 }, { 0.75f, 0.75f, 0.94f, 1.0f }, { 0.3f,  0.3f,  0.3f,  0.3f });
+	skyBox.SetDirectionalLight({ 0.577f, 0.577f, -0.577f, 0 }, { 0.75f, 0.75f, 0.94f, 1.0f }, { 0.3f, 0.3f, 0.3f, 0.3f });
 	skyBox.SetPointLight({ 1, 4.0f, 1, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
 	skyBox.SetSpotLight({ 0, 0, 0, 0 }, { 1.0f, 1.0f, 1.0f, 0 }, { 0.9f, 0, 0, 0 }, { 0, 0, 1, 0 });
 	skyBox.ReadFile();
 	skyBox.CreateDeviceDependentResources(m_deviceResources);
 	skyBox.Translate({ 0, 0, 0 });
 	skyBox.SetScaleMatrix(50, 50, 50);
-
-	//models.push_back(skyBox);
 
 	//tree.SetFilePath("Assets/Tree.obj");
 	//tree.SetTexturePath("Assets/Diffuse_Treehouse.dds");

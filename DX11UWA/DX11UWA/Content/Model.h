@@ -44,6 +44,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11Buffer>		m_lightConstantBuffer;
 	LightingConstantBuffer m_lightConstantBufferData;
 	float deltaLight = 1;
+	float deltaPosition = 1;
 
 	//normal members
 	bool isNormalMap;
@@ -92,7 +93,8 @@ public:
 	void SetGeometryShader(vector<Vertex> points);
 
 	//Updaters
-	void UpdateLightRadius(DX::StepTimer const& timer);
+	void UpdateLightRadius(DX::StepTimer const& timer, float min, float max);
 	void UpdateSpotLight(XMFLOAT4X4 camera);
-
+	void UpdatePointLightPosition(DX::StepTimer const& timer, float min, float max);
+	void UpdateDirectionalLight(DX::StepTimer const& timer, bool left);
 };

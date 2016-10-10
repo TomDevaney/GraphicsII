@@ -41,7 +41,7 @@ void Model::ReadFile()
 				fin >> tempNormal.y;
 				fin >> tempNormal.z;
 
-				//tempNormal.z = -tempNormal.z;
+				tempNormal.x = -tempNormal.x;
 
 				normals.push_back(tempNormal);
 			}
@@ -84,11 +84,26 @@ void Model::ReadFile()
 				fin >> tempPosition.y;
 				fin >> tempPosition.z;
 
-				//tempPosition.z = -tempPosition.z;
+				tempPosition.x = -tempPosition.x;
 
 				positions.push_back(tempPosition);
 			}
 		}
+	}
+
+	for (int i = 0; i < vertexIndices.size(); i += 3)
+	{
+		unsigned int temp = vertexIndices[i + 1];
+		vertexIndices[i + 1] = vertexIndices[i + 2];
+		vertexIndices[i + 2] = temp;
+
+		temp = uvIndices[i + 1];
+		uvIndices[i + 1] = uvIndices[i + 2];
+		uvIndices[i + 2] = temp;
+
+		temp = normalIndices[i + 1];
+		normalIndices[i + 1] = normalIndices[i + 2];
+		normalIndices[i + 2] = temp;
 	}
 
 	bool unique = true;
@@ -242,6 +257,15 @@ void Model::CreateDeviceDependentResources(const std::shared_ptr<DX::DeviceResou
 			)
 		);
 	});
+
+	if (isGeometry)
+	{
+		auto createGSTask = loadGSTask.then([this](const std::vector<byte>& fileData) {
+			DX::ThrowIfFailed(
+				m_deviceResources->GetD3DDevice()->CreateGeometryShader(&fileData[0], fileData.size(), nullptr, &m_geometryShader)
+			);
+		});
+	}
 
 	// Once both shaders are loaded, create the mesh.
 	auto createModelTask = (createPSTask && createVSTask).then([this]() {
@@ -452,6 +476,11 @@ void Model::Render()
 		);
 	}
 
+	if (isGeometry)
+	{
+		context->GSSetShader(m_geometryShader.Get(), nullptr, 0);
+	}
+
 	if (isSkybox)
 	{
 		context->PSSetShaderResources(2, 1, m_shaderResourceView.GetAddressOf());
@@ -523,21 +552,56 @@ void Model::SetPointLight(XMFLOAT4 pointPosition, XMFLOAT4 pointLightColor, XMFL
 	m_lightConstantBufferData.lightRadius = lightRadius;
 }
 
-void Model::UpdateLightRadius(DX::StepTimer const& timer)
+void Model::UpdateLightRadius(DX::StepTimer const& timer, float min, float max)
 {
 	const float delta_time = (float)timer.GetElapsedSeconds();
 
 	m_lightConstantBufferData.lightRadius.x += deltaLight * delta_time;
 
-	if (m_lightConstantBufferData.lightRadius.x >= 5)
+	if (m_lightConstantBufferData.lightRadius.x >= max)
 	{
-		m_lightConstantBufferData.lightRadius.x = 5;
+		m_lightConstantBufferData.lightRadius.x = max;
 		deltaLight *= -1;
 	}
-	else if (m_lightConstantBufferData.lightRadius.x <= 1)
+	else if (m_lightConstantBufferData.lightRadius.x <= min)
 	{
-		m_lightConstantBufferData.lightRadius.x = 1;
+		m_lightConstantBufferData.lightRadius.x = min;
 		deltaLight *= -1;
+	}
+}
+
+void Model::UpdatePointLightPosition(DX::StepTimer const& timer, float min, float max)
+{
+	const float delta_time = (float)timer.GetElapsedSeconds();
+
+	m_lightConstantBufferData.pointLightPosition.x += deltaPosition * delta_time;
+
+	if (m_lightConstantBufferData.pointLightPosition.x >= max)
+	{
+		m_lightConstantBufferData.pointLightPosition.x = max;
+		deltaPosition *= -1;
+	}
+	else if (m_lightConstantBufferData.pointLightPosition.x <= min)
+	{
+		m_lightConstantBufferData.pointLightPosition.x = min;
+		deltaPosition *= -1;
+	}
+}
+
+void Model::UpdateDirectionalLight(DX::StepTimer const& timer, bool left)
+{
+	const float delta_time = (float)timer.GetElapsedSeconds();
+
+	if (left)
+	{
+		m_lightConstantBufferData.dirLightNorm.x += 1 * delta_time;
+		m_lightConstantBufferData.dirLightNorm.z += 1 * delta_time;
+	}
+	else
+	{
+		m_lightConstantBufferData.dirLightNorm.x -= 1 * delta_time;
+		m_lightConstantBufferData.dirLightNorm.z -= 1 * delta_time;
+
 	}
 }
 
@@ -713,3 +777,4 @@ void Model::SetGeometryShader(vector<Vertex> points)
 
 	geometryPoints = points;
 }
+
