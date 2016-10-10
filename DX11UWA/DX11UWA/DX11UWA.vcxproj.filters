@@ -47,6 +47,15 @@
     <Filter Include="Content\My Stuff">
       <UniqueIdentifier>{f74f7369-76cd-48d7-8072-d67561194472}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Assets\Models">
+      <UniqueIdentifier>{1fb45c92-92bc-4ff2-b9ca-022fa254f45d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Assets\Textures">
+      <UniqueIdentifier>{497813b6-5edf-4998-9401-a3c0683e319f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Content\My Stuff\Shaders">
+      <UniqueIdentifier>{6aec90e5-212b-409a-afc0-a2ff4692cde7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App.cpp">
@@ -128,11 +137,11 @@
     <Image Include="Assets\StoreLogo.png">
       <Filter>Assets</Filter>
     </Image>
-    <Image Include="Assets\TestCubeMap.dds">
-      <Filter>Assets</Filter>
+    <Image Include="Assets\cartoonWood_seamless.dds">
+      <Filter>Assets\Textures</Filter>
     </Image>
-    <Image Include="Assets\hotelCubeMap.dds">
-      <Filter>Assets</Filter>
+    <Image Include="Assets\brownishDirt_seamless.dds">
+      <Filter>Assets\Textures</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
@@ -140,16 +149,16 @@
       <Filter>Assets</Filter>
     </None>
     <None Include="Assets\Fuzzy Goomba.obj">
-      <Filter>Assets</Filter>
+      <Filter>Assets\Models</Filter>
     </None>
     <None Include="Assets\SkyBox.obj">
-      <Filter>Assets</Filter>
+      <Filter>Assets\Models</Filter>
     </None>
     <None Include="Assets\test pyramid.obj">
-      <Filter>Assets</Filter>
+      <Filter>Assets\Models</Filter>
     </None>
     <None Include="Assets\Tree.obj">
-      <Filter>Assets</Filter>
+      <Filter>Assets\Models</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -159,33 +168,43 @@
     <FxCompile Include="Content\SampleVertexShader.hlsl">
       <Filter>Content\Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="Content\MyFirstPixelShader.hlsl">
-      <Filter>Content\My Stuff</Filter>
-    </FxCompile>
-    <FxCompile Include="Content\MyFirstVertexShader.hlsl">
-      <Filter>Content\My Stuff</Filter>
-    </FxCompile>
     <FxCompile Include="SkyBoxVertexShader.hlsl">
       <Filter>Content\My Stuff</Filter>
     </FxCompile>
     <FxCompile Include="SkyBoxPixelShader.hlsl">
       <Filter>Content\My Stuff</Filter>
     </FxCompile>
+    <FxCompile Include="Content\MyFirstPixelShader.hlsl">
+      <Filter>Content\My Stuff\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\MyFirstVertexShader.hlsl">
+      <Filter>Content\My Stuff\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="MyFirstGeometryShader.hlsl">
+      <Filter>Content\My Stuff\Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <Media Include="Assets\TestCubeMap.dds" />
     <Media Include="Assets\Diffuse_Fuzzy_Corrupt.dds">
-      <Filter>Assets</Filter>
+      <Filter>Assets\Textures</Filter>
     </Media>
     <Media Include="Assets\Diffuse_Treehouse.dds">
-      <Filter>Assets</Filter>
+      <Filter>Assets\Textures</Filter>
     </Media>
     <Media Include="Assets\Normal_Fuzzy.dds">
-      <Filter>Assets</Filter>
+      <Filter>Assets\Textures</Filter>
     </Media>
+    <Media Include="Assets\hotelCubeMap1024.dds" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">
       <Filter>Assets</Filter>
     </AppxManifest>
+  </ItemGroup>
+  <ItemGroup>
+    <Object Include="Assets\Platform.obj">
+      <Filter>Assets\Models</Filter>
+    </Object>
   </ItemGroup>
 </Project>

@@ -23,8 +23,8 @@ struct InstanceData
 	float3 pos : INSTANCEPOS;
 };
 
-// Per-pixel color data passed through the pixel shader.
-struct PixelShaderInput
+// Per-pixel color data passed to the geometry shader.
+struct GeometryShaderInput
 {
 	float4 pos : SV_POSITION;
 	float2 uv : TEXCOORD;
@@ -36,9 +36,9 @@ struct PixelShaderInput
 };
 
 // Simple shader to do vertex processing on the GPU.
-PixelShaderInput main(VertexShaderInput input, InstanceData instanceInput)
+GeometryShaderInput main(VertexShaderInput input, InstanceData instanceInput)
 {
-	PixelShaderInput output;
+	GeometryShaderInput output;
 
 	float4 pos;
 	float4 norm;

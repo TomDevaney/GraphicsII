@@ -54,6 +54,12 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11PixelShader>	m_skyBoxPixelShader;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_skyBoxShaderResourceView;;
 
+	//Geometry members
+	bool isGeometry;
+	Microsoft::WRL::ComPtr<ID3D11Buffer>		m_geometryVertexBuffer;
+	Microsoft::WRL::ComPtr<ID3D11GeometryShader> m_geometryShader;
+	vector<Vertex> geometryPoints;
+
 	//Helper functions
 	void CalculateTangentBinormal(Vertex v1, Vertex v2, Vertex v3, XMFLOAT3 &tangent, XMFLOAT3 &binormal); //helper function
 	void CalculateNewNormal(XMFLOAT3 tangent, XMFLOAT3 binormal, XMFLOAT3 &normal);
@@ -83,6 +89,7 @@ public:
 	void SetIsSkybox(bool toggle);
 	void SetIdentityMatrix();
 	void SetScaleMatrix(float x, float y, float z);
+	void SetGeometryShader(vector<Vertex> points);
 
 	//Updaters
 	void UpdateLightRadius(DX::StepTimer const& timer);

@@ -37,9 +37,11 @@ void Model::ReadFile()
 			}
 			else if (buffer[0] == 'v' && buffer[1] == 'n')
 			{
-				fin >> tempNormal.x;
+				fin >> tempNormal.x; //NEGATE 
 				fin >> tempNormal.y;
 				fin >> tempNormal.z;
+
+				//tempNormal.z = -tempNormal.z;
 
 				normals.push_back(tempNormal);
 			}
@@ -78,9 +80,11 @@ void Model::ReadFile()
 			}
 			else if (buffer[0] == 'v')
 			{
-				fin >> tempPosition.x;
+				fin >> tempPosition.x; //NEGATE
 				fin >> tempPosition.y;
 				fin >> tempPosition.z;
+
+				//tempPosition.z = -tempPosition.z;
 
 				positions.push_back(tempPosition);
 			}
@@ -167,6 +171,7 @@ void Model::CreateDeviceDependentResources(const std::shared_ptr<DX::DeviceResou
 	// Load shaders asynchronously.
 	auto loadVSTask = DX::ReadDataAsync(L"MyFirstVertexShader.cso");
 	auto loadPSTask = DX::ReadDataAsync(L"MyFirstPixelShader.cso");
+	auto loadGSTask = DX::ReadDataAsync(L"MyFirstGeometryShader.cso");
 	//auto loadVSTask2 = DX::ReadDataAsync(L"SkyBoxVertexShader.cso");
 	//auto loadPSTask2 = DX::ReadDataAsync(L"SkyBoxPixelShader.cso");
 
@@ -237,32 +242,6 @@ void Model::CreateDeviceDependentResources(const std::shared_ptr<DX::DeviceResou
 			)
 		);
 	});
-
-	//if (isSkybox)
-	//{
-	//	auto createVSTask = loadVSTask2.then([this](const std::vector<byte>& fileData) {
-	//		DX::ThrowIfFailed(
-	//			m_deviceResources->GetD3DDevice()->CreateVertexShader(
-	//				&fileData[0],
-	//				fileData.size(),
-	//				nullptr,
-	//				&m_skyBoxVertexShader
-	//			)
-	//		);
-	//	});
-
-	//	//Create pixel shader
-	//	auto createPSTask = loadPSTask2.then([this](const std::vector<byte>& fileData) {
-	//		DX::ThrowIfFailed(
-	//			m_deviceResources->GetD3DDevice()->CreatePixelShader(
-	//				&fileData[0],
-	//				fileData.size(),
-	//				nullptr,
-	//				&m_skyBoxPixelShader
-	//			)
-	//		);
-	//	});
-	//}
 
 	// Once both shaders are loaded, create the mesh.
 	auto createModelTask = (createPSTask && createVSTask).then([this]() {
@@ -726,4 +705,11 @@ void Model::SetScaleMatrix(float x, float y, float z)
 	m_constantBufferData.model._22 = 1 * y;
 	m_constantBufferData.model._33 = 1 * z;
 
+}
+
+void Model::SetGeometryShader(vector<Vertex> points)
+{
+	isGeometry = true;
+
+	geometryPoints = points;
 }
