@@ -1,0 +1,20 @@
+#
+#
+#
+
+newmtl DNC_lvl00_tree_willowLeaves:noco_willowLeaves group Mesh_blinn1SG
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.000000 0.000000 0.000000
+Ks 0.000000 0.000000 0.000000
+Ns 0.000000
+map_Kd treeWillow_Trunk_D.png
+
+newmtl mesh_willowTrunk Mesh_blinn1SG
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.000000 0.000000 0.000000
+Ks 0.000000 0.000000 0.000000
+Ns 0.000000
+map_Kd treeWillow_Trunk_D.png
+

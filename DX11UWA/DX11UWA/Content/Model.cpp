@@ -56,27 +56,27 @@ void Model::ReadFile()
 			}
 			else if (buffer[0] == 'f' && buffer.size() == 1)
 			{
-				fin >> buffer;
+				string tempBuffer[3];
 
-				do
+				fin >> tempBuffer[0];
+				fin >> tempBuffer[2];
+				fin >> tempBuffer[1];
+
+				for (int i = 0; i < 3; ++i)
 				{
-					if (buffer[0] != 'f' && buffer[0] != 's')
-					{
-						int index1 = 0;
-						int index2 = buffer.find('/', 0);
-						string tempVertexIndex = buffer.substr(index1, index2);
-						index1 = buffer.find('/', index2 + 1);
-						string tempUvIndex = buffer.substr(index2 + 1, index1 - (index2 + 1));
-						index2 = buffer.find('/', index1);
-						string tempNormalIndex = buffer.substr(index2 + 1, 100);
 
-						vertexIndices.push_back(stoi(tempVertexIndex));
-						uvIndices.push_back(stoi(tempUvIndex));
-						normalIndices.push_back(stoi(tempNormalIndex));
-					}
-					fin >> buffer;
+					int index1 = 0;
+					int index2 = tempBuffer[i].find('/', 0);
+					string tempVertexIndex = tempBuffer[i].substr(index1, index2);
+					index1 = tempBuffer[i].find('/', index2 + 1);
+					string tempUvIndex = tempBuffer[i].substr(index2 + 1, index1 - (index2 + 1));
+					index2 = tempBuffer[i].find('/', index1);
+					string tempNormalIndex = tempBuffer[i].substr(index2 + 1, 100);
 
-				} while (!fin.eof());
+					vertexIndices.push_back(stoi(tempVertexIndex));
+					uvIndices.push_back(stoi(tempUvIndex));
+					normalIndices.push_back(stoi(tempNormalIndex));
+				}
 			}
 			else if (buffer[0] == 'v')
 			{
@@ -91,20 +91,20 @@ void Model::ReadFile()
 		}
 	}
 
-	for (int i = 0; i < vertexIndices.size(); i += 3)
-	{
-		unsigned int temp = vertexIndices[i + 1];
-		vertexIndices[i + 1] = vertexIndices[i + 2];
-		vertexIndices[i + 2] = temp;
+	//for (int i = 0; i < vertexIndices.size(); i += 3)
+	//{
+	//	unsigned int temp = vertexIndices[i + 1];
+	//	vertexIndices[i + 1] = vertexIndices[i + 2];
+	//	vertexIndices[i + 2] = temp;
 
-		temp = uvIndices[i + 1];
-		uvIndices[i + 1] = uvIndices[i + 2];
-		uvIndices[i + 2] = temp;
+	//	temp = uvIndices[i + 1];
+	//	uvIndices[i + 1] = uvIndices[i + 2];
+	//	uvIndices[i + 2] = temp;
 
-		temp = normalIndices[i + 1];
-		normalIndices[i + 1] = normalIndices[i + 2];
-		normalIndices[i + 2] = temp;
-	}
+	//	temp = normalIndices[i + 1];
+	//	normalIndices[i + 1] = normalIndices[i + 2];
+	//	normalIndices[i + 2] = temp;
+	//}
 
 	bool unique = true;
 

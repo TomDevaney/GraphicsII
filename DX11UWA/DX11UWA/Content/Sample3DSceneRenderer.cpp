@@ -409,7 +409,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	pyramid.SetFilePath("Assets/test pyramid.obj");
 	pyramid.SetTexturePath("Assets/cartoonWood_seamless.dds");
 	pyramid.SetDirectionalLight({ 0.577f, 0.577f, -0.577f, 0 }, { 0.75f, 0.75f, 0.94f, 1.0f }, { 0.3f, 0.3f, 0.3f, 0.3f });
-	//pyramid.SetPointLight({ 2, 3.0f, 2, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
+	pyramid.SetPointLight({ 2, 3.0f, 2, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
 	pyramid.ReadFile();
 	pyramid.CreateDeviceDependentResources(m_deviceResources);
 	pyramid.Translate({ 1.0f, 1.0f, 1.0f });
@@ -423,29 +423,45 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	goomba.SetNormalPath("Assets/Normal_Fuzzy.dds");
 	goomba.SetInstanceData(500, 1);
 	goomba.SetDirectionalLight({ 0.577f, 0.577f, -0.577f, 0 }, { 0.75f, 0.75f, 0.94f, 1.0f }, { 0.3f, 0.3f, 0.3f, 0.3f });
-	//goomba.SetPointLight({ 2, 3.0f, 2, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
+	goomba.SetPointLight({ 2, 3.0f, 2, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
 //	goomba.SetSpotLight({ 5, 6, 5, 0 }, { 1.0f, 1.0f, 1.0f, 0 }, { 0.9f, 0, 0, 0 }, { 0, -1, 0, 0 });
 	goomba.SetSpotLight({ 0, 0, 0, 0 }, { 1.0f, 1.0f, 1.0f, 0 }, { 0.9f, 0, 0, 0 }, { 0, 0, 1, 0 });
 	goomba.ReadFile();
 	goomba.CalculateNewNormalsTangentsNormals(); //breaks my spotlight (and potentially other lights) (for spotlight, it flipped my normals)
 	goomba.CreateDeviceDependentResources(m_deviceResources);
-	goomba.Translate({ 0, 2.0f, 0 });
+	goomba.Translate({ 1, 0, 1 });
 
 	models.push_back(&goomba);
 
 	//handle platform
-	platform.SetFilePath("Assets/Platform.obj");
+	platform.SetFilePath("Assets/Plane.obj");
 	platform.SetTexturePath("Assets/cartoonWood_seamless.dds");
+	platform.SetNormalPath("Assets/normal_cartoonWood.dds");
 	platform.SetDirectionalLight({ 0.577f, 0.577f, -0.577f, 0 }, { 0.75f, 0.75f, 0.94f, 1.0f }, { 0.3f, 0.3f, 0.3f, 0.3f });
-	//platform.SetPointLight({ 2, 3.0f, 2, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
+	platform.SetPointLight({ 2, 3.0f, 2, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
 	//platform.SetSpotLight({ 5, 6, 5, 0 }, { 1.0f, 1.0f, 1.0f, 0 }, { 0.9f, 0, 0, 0 }, { 0, -1, 0, 0 });
 	platform.SetSpotLight({ 0, 0, 0, 0 }, { 1.0f, 1.0f, 1.0f, 0 }, { 0.9f, 0, 0, 0 }, { 0, 0, 1, 0 });
 	platform.ReadFile();
 	platform.CreateDeviceDependentResources(m_deviceResources);
-	platform.Translate({ 5.0f, 1.5f, 10 });
-	platform.SetScaleMatrix(2, 1, 10);
+	platform.CalculateNewNormalsTangentsNormals(); //breaks my spotlight (and potentially other lights) (for spotlight, it flipped my normals)
+	platform.Translate({ 1, 0, 1 });
+	platform.SetScaleMatrix(10, 1, 15);
 
 	models.push_back(&platform);
+
+	willowTree.SetFilePath("Assets/WillowTree.obj");
+	willowTree.SetTexturePath("Assets/treeWillow_Trunk_D.dds");
+	//willowTree.SetNormalPath("Assets/normal_cartoonWood.dds");
+	willowTree.SetDirectionalLight({ 0.577f, 0.577f, -0.577f, 0 }, { 0.75f, 0.75f, 0.94f, 1.0f }, { 0.3f, 0.3f, 0.3f, 0.3f });
+	willowTree.SetPointLight({ 2, 3.0f, 2, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
+	willowTree.SetSpotLight({ 0, 0, 0, 0 }, { 1.0f, 1.0f, 1.0f, 0 }, { 0.9f, 0, 0, 0 }, { 0, 0, 1, 0 });
+	willowTree.ReadFile();
+	willowTree.CreateDeviceDependentResources(m_deviceResources);
+	//willowTree.CalculateNewNormalsTangentsNormals(); //breaks my spotlight (and potentially other lights) (for spotlight, it flipped my normals)
+	willowTree.Translate({ -2, 0, -2 });
+	willowTree.SetScaleMatrix(0.15f, 0.15f, 0.15f);
+
+	models.push_back(&willowTree);
 
 	//handle ground
 	vector<Vertex> points;
@@ -454,10 +470,10 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 
 	points.push_back(point);
 
-	ground.SetFilePath("Assets/Platform.obj");
+	ground.SetFilePath("Assets/Plane.obj");
 	ground.SetTexturePath("Assets/brownishDirt_seamless.dds");
 	ground.SetDirectionalLight({ 0.577f, 0.577f, -0.577f, 0 }, { 0.75f, 0.75f, 0.94f, 1.0f }, { 0.3f, 0.3f, 0.3f, 0.3f });
-	//ground.SetPointLight({ 2, 3.0f, 2, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
+	ground.SetPointLight({ 2, 3.0f, 2, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
 	//ground.SetSpotLight({ 5, 6, 5, 0 }, { 1.0f, 1.0f, 1.0f, 0 }, { 0.9f, 0, 0, 0 }, { 0, -1, 0, 0 });
 	ground.SetSpotLight({ 0, 0, 0, 0 }, { 1.0f, 1.0f, 1.0f, 0 }, { 0.9f, 0, 0, 0 }, { 0, 0, 1, 0 });
 	//ground.SetGeometryShader(points);
@@ -471,7 +487,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	skyBox.SetFilePath("Assets/SkyBox.obj");
 	skyBox.SetTexturePath("Assets/hotelCubeMap1024.dds");
 	skyBox.SetIsSkybox(true);
-	skyBox.SetDirectionalLight({ 0.577f, 0.577f, -0.577f, 0 }, { 0.75f, 0.75f, 0.94f, 1.0f }, { 0.3f, 0.3f, 0.3f, 0.3f });
+	skyBox.SetDirectionalLight({ 0.577f, 0.577f, -0.577f, 0 }, { 0.75f, 0.75f, 0.94f, 1.0f }, { 1, 1, 1, 1 });
 	skyBox.SetPointLight({ 1, 4.0f, 1, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
 	skyBox.SetSpotLight({ 0, 0, 0, 0 }, { 1.0f, 1.0f, 1.0f, 0 }, { 0.9f, 0, 0, 0 }, { 0, 0, 1, 0 });
 	skyBox.ReadFile();

@@ -143,6 +143,12 @@
     <Image Include="Assets\brownishDirt_seamless.dds">
       <Filter>Assets\Textures</Filter>
     </Image>
+    <Image Include="Assets\normal_cartoonWood.dds">
+      <Filter>Assets\Textures</Filter>
+    </Image>
+    <Image Include="Assets\treeWillow_Trunk_D.dds">
+      <Filter>Assets\Textures</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <None Include="DX11UWA_TemporaryKey.pfx">
@@ -204,6 +210,12 @@
   </ItemGroup>
   <ItemGroup>
     <Object Include="Assets\Platform.obj">
+      <Filter>Assets\Models</Filter>
+    </Object>
+    <Object Include="Assets\Plane.obj">
+      <Filter>Assets\Models</Filter>
+    </Object>
+    <Object Include="Assets\WillowTree.obj">
       <Filter>Assets\Models</Filter>
     </Object>
   </ItemGroup>

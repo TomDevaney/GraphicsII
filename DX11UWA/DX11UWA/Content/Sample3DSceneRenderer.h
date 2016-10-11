@@ -70,6 +70,7 @@ namespace DX11UWA
 		Model platform;
 		Model ground;
 		Model skyBox;
+		Model willowTree;
 		vector<Model*> models;
 		//Scene scene;
 
