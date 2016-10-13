@@ -29,7 +29,7 @@ Sample3DSceneRenderer::Sample3DSceneRenderer(const std::shared_ptr<DX::DeviceRes
 void Sample3DSceneRenderer::CreateWindowSizeDependentResources(void)
 {
 	Size outputSize = m_deviceResources->GetOutputSize();
-	float aspectRatio = outputSize.Width / outputSize.Height;
+	float aspectRatio = outputSize.Width / (outputSize.Height / 2); //I added divide by two to account for splitscreen
 	float fovAngleY = 70.0f * XM_PI / 180.0f;
 
 	// This is a simple example of change that can be made when the app is in
@@ -90,16 +90,8 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 		}
 	}
 
-	//handle camtarget
-	//camRotationMatrix = XMMatrixRotationRollPitchYaw(camPitch, camYaw, 0);
-	//camTarget = XMVector3TransformCoord({ 0, 0, 1, 0 }, camRotationMatrix);
-	//camTarget = XMVector3Normalize(camTarget);
-
 	// Update or move camera here
 	UpdateCamera(timer, 1.0f, 0.75f);
-
-	//update camtarget
-	//camTarget = XMVectorSet(m_camera._41, m_camera._42, m_camera._43, m_camera._44) + camTarget; //position + old camtarget = new camtarget
 
 	//Set spotlight to camera position
 	skyBox.UpdateSpotLight(m_camera);
@@ -179,6 +171,37 @@ void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const
 			models[i]->UpdateDirectionalLight(timer, false);
 		}
 	}
+
+	//handle bottom screen input
+	if (m_kbuttons['I'])
+	{
+		XMMATRIX translation = XMMatrixTranslation(0.0f, 0.0f, moveSpd * delta_time);
+		XMMATRIX temp_camera = XMLoadFloat4x4(&m_bottomCamera);
+		XMMATRIX result = XMMatrixMultiply(translation, temp_camera);
+		XMStoreFloat4x4(&m_bottomCamera, result);
+	}
+	if (m_kbuttons['K'])
+	{
+		XMMATRIX translation = XMMatrixTranslation(0.0f, 0.0f, -moveSpd * delta_time);
+		XMMATRIX temp_camera = XMLoadFloat4x4(&m_bottomCamera);
+		XMMATRIX result = XMMatrixMultiply(translation, temp_camera);
+		XMStoreFloat4x4(&m_bottomCamera, result);
+	}
+	if (m_kbuttons['J'])
+	{
+		XMMATRIX translation = XMMatrixTranslation(-moveSpd * delta_time, 0.0f, 0.0f);
+		XMMATRIX temp_camera = XMLoadFloat4x4(&m_bottomCamera);
+		XMMATRIX result = XMMatrixMultiply(translation, temp_camera);
+		XMStoreFloat4x4(&m_bottomCamera, result);
+	}
+	if (m_kbuttons['L'])
+	{
+		XMMATRIX translation = XMMatrixTranslation(moveSpd * delta_time, 0.0f, 0.0f);
+		XMMATRIX temp_camera = XMLoadFloat4x4(&m_bottomCamera);
+		XMMATRIX result = XMMatrixMultiply(translation, temp_camera);
+		XMStoreFloat4x4(&m_bottomCamera, result);
+	}
+
 
 	if (m_currMousePos) 
 	{
@@ -270,6 +293,7 @@ void Sample3DSceneRenderer::Render(void)
 	for (int i = 0; i < models.size(); ++i)
 	{
 		models[i]->SetView(XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
+		models[i]->SetSecondView(XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_bottomCamera))));
 	}
 
 	// Prepare the constant buffer to send it to the graphics device.
@@ -296,17 +320,10 @@ void Sample3DSceneRenderer::Render(void)
 	m_deviceResources->GetD3DDeviceContext()->ClearDepthStencilView(m_deviceResources->GetDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	//Draw all of my models
-
 	for (int i = 0; i < models.size(); ++i)
 	{
 		models[i]->Render();
 	}
-
-	//pyramid.Render();
-	//goomba.Render();
-	//platform.Render();
-	//ground.Render();
-	//tree.Render();
 }
 
 void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
@@ -463,13 +480,23 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 
 	models.push_back(&willowTree);
 
-	//handle ground
+	//handle grass
 	vector<Vertex> points;
 
-	Vertex point = { XMFLOAT3{-5.0f, 1.6f, 2.0f} };
-
+	Vertex point = { XMFLOAT3{-5.0f, 1.6f, 2.0f}, XMFLOAT2{}, XMFLOAT3{0, 0, -1 } };
 	points.push_back(point);
 
+	grass.SetTexturePath("Assets/grass_blade.dds");
+	grass.SetGeometryShader(points);
+	grass.SetDirectionalLight({ 0.577f, 0.577f, -0.577f, 0 }, { 0.75f, 0.75f, 0.94f, 1.0f }, { 1, 1, 1, 1 });
+	grass.SetPointLight({ 1, 4.0f, 1, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
+	grass.SetSpotLight({ 0, 0, 0, 0 }, { 1.0f, 1.0f, 1.0f, 0 }, { 0.9f, 0, 0, 0 }, { 0, 0, 1, 0 });
+	grass.CreateDeviceDependentResources(m_deviceResources);
+	grass.SetIdentityMatrix();
+
+	models.push_back(&grass);
+
+	//handle ground
 	ground.SetFilePath("Assets/Plane.obj");
 	ground.SetTexturePath("Assets/brownishDirt_seamless.dds");
 	ground.SetDirectionalLight({ 0.577f, 0.577f, -0.577f, 0 }, { 0.75f, 0.75f, 0.94f, 1.0f }, { 0.3f, 0.3f, 0.3f, 0.3f });
@@ -487,9 +514,9 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	skyBox.SetFilePath("Assets/SkyBox.obj");
 	skyBox.SetTexturePath("Assets/hotelCubeMap1024.dds");
 	skyBox.SetIsSkybox(true);
-	skyBox.SetDirectionalLight({ 0.577f, 0.577f, -0.577f, 0 }, { 0.75f, 0.75f, 0.94f, 1.0f }, { 1, 1, 1, 1 });
-	skyBox.SetPointLight({ 1, 4.0f, 1, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
-	skyBox.SetSpotLight({ 0, 0, 0, 0 }, { 1.0f, 1.0f, 1.0f, 0 }, { 0.9f, 0, 0, 0 }, { 0, 0, 1, 0 });
+	//skyBox.SetDirectionalLight({ 0.577f, 0.577f, -0.577f, 0 }, { 0.75f, 0.75f, 0.94f, 1.0f }, { 1, 1, 1, 1 });
+	//skyBox.SetPointLight({ 1, 4.0f, 1, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
+	//skyBox.SetSpotLight({ 0, 0, 0, 0 }, { 1.0f, 1.0f, 1.0f, 0 }, { 0.9f, 0, 0, 0 }, { 0, 0, 1, 0 });
 	skyBox.ReadFile();
 	skyBox.CreateDeviceDependentResources(m_deviceResources);
 	skyBox.Translate({ 0, 0, 0 });
@@ -497,7 +524,6 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 
 	//tree.SetFilePath("Assets/Tree.obj");
 	//tree.SetTexturePath("Assets/Diffuse_Treehouse.dds");
-	////tree.SetInstanceData(1, 1);
 	//tree.SetDirectionalLight({ 0.577f, 0.577f, -0.577f, 0 }, { 0.75f, 0.75f, 0.94f, 1.0f }, { 0.3f, 0.3f, 0.3f, 0.3f });
 	//tree.SetPointLight({ 1, 4.0f, 1, 0 }, { 1, 1, 0, 0 }, { 5, 0, 0, 0 });
 	//tree.ReadFile();

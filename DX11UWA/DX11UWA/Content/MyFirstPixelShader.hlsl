@@ -47,26 +47,21 @@ float4 main(PixelShaderInput input) : SV_TARGET
 	float3 bumpMap = 0;
 	float4 finalColor;
 
-	//if (input.pixelColor.x || input.pixelColor.y || input.pixelColor.z)
-	//{
-	//	finalColor = float4(input.pixelColor, 1);
-	//}
-	//else
+
+	if (isSkyBox.x)
 	{
-		if (isSkyBox.x)
-		{
-			color = skyBoxTexture.Sample(filters[0], input.localPosition);
-		}
-		else
-		{
-			color = baseTexture.Sample(filters[0], input.uv);
-		}
+		finalColor = skyBoxTexture.Sample(filters[0], input.localPosition);
+	}
+	else
+	{
+		color = baseTexture.Sample(filters[0], input.uv);
+
 
 		if (color.a < 0.5f)
 		{
 			discard;
 		}
-		
+
 		if (isNormalMap.x)
 		{
 			bumpMap = normalTexture.Sample(filters[0], input.uv);
@@ -125,6 +120,7 @@ float4 main(PixelShaderInput input) : SV_TARGET
 
 		finalColor = float4(saturate(dirColor + pointColor + spotColor), 1.0f);
 	}
+	
 	
 	return finalColor;
 }

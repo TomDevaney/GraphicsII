@@ -59,7 +59,10 @@ private:
 	bool isGeometry;
 	Microsoft::WRL::ComPtr<ID3D11Buffer>		m_geometryVertexBuffer;
 	Microsoft::WRL::ComPtr<ID3D11GeometryShader> m_geometryShader;
-	vector<Vertex> geometryPoints;
+	//vector<Vertex> geometryPoints;
+
+	//Splitscreen members
+	XMFLOAT4X4 bottomScreenView;
 
 	//Helper functions
 	void CalculateTangentBinormal(Vertex v1, Vertex v2, Vertex v3, XMFLOAT3 &tangent, XMFLOAT3 &binormal); //helper function
@@ -82,6 +85,7 @@ public:
 	void SetTexturePath(string path);
 	void SetProjection(XMMATRIX projection);
 	void SetView(XMMATRIX view);
+	void SetSecondView(XMMATRIX view);
 	void SetInstanceData(unsigned int numInstances, unsigned int widthOfInstance);
 	void SetDirectionalLight(XMFLOAT4 directionalLightDirection, XMFLOAT4 directionalLightColor, XMFLOAT4 ambientRatio);
 	void SetPointLight(XMFLOAT4 pointPosition, XMFLOAT4 pointLightColor, XMFLOAT4 lightRadius);

@@ -408,15 +408,22 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 			)
 		);
 	
-	// Set the 3D rendering viewport to target the entire window.
+	// Set the 3D rendering viewport to target the top of the window
 	m_screenViewport = CD3D11_VIEWPORT(
 		0.0f,
 		0.0f,
 		m_d3dRenderTargetSize.Width,
-		m_d3dRenderTargetSize.Height
+		m_d3dRenderTargetSize.Height / 2
 		);
 
-	m_d3dContext->RSSetViewports(1, &m_screenViewport);
+	//m_d3dContext->RSSetViewports(1, &m_screenViewport);
+
+	//Set the bottom to target the bottom half
+	m_bottomScreenViewport = CD3D11_VIEWPORT(0, m_d3dRenderTargetSize.Height / 2, m_d3dRenderTargetSize.Width, m_d3dRenderTargetSize.Height / 2);
+
+	//Set both viewports
+	D3D11_VIEWPORT viewPorts[] = { m_screenViewport, m_bottomScreenViewport };
+	m_d3dContext->RSSetViewports(2, viewPorts);
 
 	// Create a Direct2D target bitmap associated with the
 	// swap chain back buffer and set it as the current target.

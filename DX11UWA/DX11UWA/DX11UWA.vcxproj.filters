@@ -137,16 +137,7 @@
     <Image Include="Assets\StoreLogo.png">
       <Filter>Assets</Filter>
     </Image>
-    <Image Include="Assets\cartoonWood_seamless.dds">
-      <Filter>Assets\Textures</Filter>
-    </Image>
-    <Image Include="Assets\brownishDirt_seamless.dds">
-      <Filter>Assets\Textures</Filter>
-    </Image>
-    <Image Include="Assets\normal_cartoonWood.dds">
-      <Filter>Assets\Textures</Filter>
-    </Image>
-    <Image Include="Assets\treeWillow_Trunk_D.dds">
+    <Image Include="Assets\grass_blade.dds">
       <Filter>Assets\Textures</Filter>
     </Image>
   </ItemGroup>
@@ -166,6 +157,9 @@
     <None Include="Assets\Tree.obj">
       <Filter>Assets\Models</Filter>
     </None>
+    <None Include="Assets\Platform.obj" />
+    <None Include="Assets\Plane.obj" />
+    <None Include="Assets\WillowTree.obj" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Content\SamplePixelShader.hlsl">
@@ -189,6 +183,12 @@
     <FxCompile Include="MyFirstGeometryShader.hlsl">
       <Filter>Content\My Stuff\Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="PS_TriangleGS.hlsl">
+      <Filter>Content\My Stuff\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="VS_TriangleGS.hlsl">
+      <Filter>Content\My Stuff\Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <Media Include="Assets\TestCubeMap.dds" />
@@ -202,21 +202,14 @@
       <Filter>Assets\Textures</Filter>
     </Media>
     <Media Include="Assets\hotelCubeMap1024.dds" />
+    <Media Include="Assets\cartoonWood_seamless.dds" />
+    <Media Include="Assets\brownishDirt_seamless.dds" />
+    <Media Include="Assets\normal_cartoonWood.dds" />
+    <Media Include="Assets\treeWillow_Trunk_D.dds" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">
       <Filter>Assets</Filter>
     </AppxManifest>
-  </ItemGroup>
-  <ItemGroup>
-    <Object Include="Assets\Platform.obj">
-      <Filter>Assets\Models</Filter>
-    </Object>
-    <Object Include="Assets\Plane.obj">
-      <Filter>Assets\Models</Filter>
-    </Object>
-    <Object Include="Assets\WillowTree.obj">
-      <Filter>Assets\Models</Filter>
-    </Object>
   </ItemGroup>
 </Project>

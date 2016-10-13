@@ -41,6 +41,9 @@ namespace DX
 		D3D11_VIEWPORT				GetScreenViewport() const				{ return m_screenViewport; }
 		DirectX::XMFLOAT4X4			GetOrientationTransform3D() const		{ return m_orientationTransform3D; }
 
+		//My accessors
+		D3D11_VIEWPORT				GetBottomScreenViewport() const { return m_bottomScreenViewport; }
+
 		// D2D Accessors.
 		ID2D1Factory3*				GetD2DFactory() const					{ return m_d2dFactory.Get(); }
 		ID2D1Device2*				GetD2DDevice() const					{ return m_d2dDevice.Get(); }
@@ -66,6 +69,7 @@ namespace DX
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView1>	m_d3dRenderTargetView;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilView>	m_d3dDepthStencilView;
 		D3D11_VIEWPORT									m_screenViewport;
+		D3D11_VIEWPORT									m_bottomScreenViewport; //My variable
 
 		// Direct2D drawing components.
 		Microsoft::WRL::ComPtr<ID2D1Factory3>		m_d2dFactory;

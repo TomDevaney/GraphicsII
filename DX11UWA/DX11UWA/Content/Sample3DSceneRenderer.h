@@ -62,6 +62,7 @@ namespace DX11UWA
 
 		// Matrix data member for the camera
 		DirectX::XMFLOAT4X4 m_camera;
+		XMFLOAT4X4 m_bottomCamera;
 
 		//My Models
 		Model pyramid;
@@ -71,6 +72,7 @@ namespace DX11UWA
 		Model ground;
 		Model skyBox;
 		Model willowTree;
+		Model grass;
 		vector<Model*> models;
 		//Scene scene;
 

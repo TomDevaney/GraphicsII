@@ -4,13 +4,6 @@
 #define LCOPY(s) L##s
 #define TOWCHAR(s) LCOPY(s)
 
-//Model::~Model()
-//{
-//	delete[] vertices;
-//	delete[] uvs;
-//	delete[] normals;
-//}
-
 void Model::ReadFile()
 {
 	string buffer;
@@ -187,6 +180,13 @@ void Model::CreateDeviceDependentResources(const std::shared_ptr<DX::DeviceResou
 	auto loadVSTask = DX::ReadDataAsync(L"MyFirstVertexShader.cso");
 	auto loadPSTask = DX::ReadDataAsync(L"MyFirstPixelShader.cso");
 	auto loadGSTask = DX::ReadDataAsync(L"MyFirstGeometryShader.cso");
+
+	if (isGeometry)
+	{
+		loadVSTask = DX::ReadDataAsync(L"VS_TriangleGS.cso");
+		//loadPSTask = DX::ReadDataAsync(L"PS_TriangleGS.cso");
+	}
+
 	//auto loadVSTask2 = DX::ReadDataAsync(L"SkyBoxVertexShader.cso");
 	//auto loadPSTask2 = DX::ReadDataAsync(L"SkyBoxPixelShader.cso");
 
@@ -204,26 +204,47 @@ void Model::CreateDeviceDependentResources(const std::shared_ptr<DX::DeviceResou
 			)
 		);
 
-		static const D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+		//if (isGeometry)
+		//{
+		//	static const D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+		//	{
+		//		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		//	};
+
+		//	DX::ThrowIfFailed(
+		//		m_deviceResources->GetD3DDevice()->CreateInputLayout(
+		//			vertexDesc,
+		//			ARRAYSIZE(vertexDesc),
+		//			&fileData[0],
+		//			fileData.size(),
+		//			&m_inputLayout
+		//		)
+		//	);
+		//}
+		//else
 		{
-			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			static const D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+			{
+				{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+				{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+				{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+				{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+				{ "BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 
-			{ "INSTANCEPOS", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
-		};
+				{ "INSTANCEPOS", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+			};
 
-		DX::ThrowIfFailed(
-			m_deviceResources->GetD3DDevice()->CreateInputLayout(
-				vertexDesc,
-				ARRAYSIZE(vertexDesc),
-				&fileData[0],
-				fileData.size(),
-				&m_inputLayout
-			)
-		);
+			DX::ThrowIfFailed(
+				m_deviceResources->GetD3DDevice()->CreateInputLayout(
+					vertexDesc,
+					ARRAYSIZE(vertexDesc),
+					&fileData[0],
+					fileData.size(),
+					&m_inputLayout
+				)
+			);
+		}
+
 	});
 
 	//Create pixel shader
@@ -270,36 +291,55 @@ void Model::CreateDeviceDependentResources(const std::shared_ptr<DX::DeviceResou
 	// Once both shaders are loaded, create the mesh.
 	auto createModelTask = (createPSTask && createVSTask).then([this]() {
 
-
-		D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
-		vertexBufferData.pSysMem = realVertices.data();
-		vertexBufferData.SysMemPitch = 0;
-		vertexBufferData.SysMemSlicePitch = 0;
-		CD3D11_BUFFER_DESC vertexBufferDesc(sizeof(Vertex) * realVertices.size(), D3D11_BIND_VERTEX_BUFFER);
-		DX::ThrowIfFailed(
-			m_deviceResources->GetD3DDevice()->CreateBuffer(
-				&vertexBufferDesc,
-				&vertexBufferData,
-				&m_vertexBuffer
-			)
-		);
-
+		//if (isGeometry)
+		//{
+		//	D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
+		//	vertexBufferData.pSysMem = geometryPoints.data();
+		//	vertexBufferData.SysMemPitch = 0;
+		//	vertexBufferData.SysMemSlicePitch = 0;
+		//	CD3D11_BUFFER_DESC vertexBufferDesc(sizeof(Vertex) * geometryPoints.size(), D3D11_BIND_VERTEX_BUFFER);
+		//	DX::ThrowIfFailed(
+		//		m_deviceResources->GetD3DDevice()->CreateBuffer(
+		//			&vertexBufferDesc,
+		//			&vertexBufferData,
+		//			&m_vertexBuffer
+		//		)
+		//	);
+		//}
+		//else
+		{
+			D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
+			vertexBufferData.pSysMem = realVertices.data();
+			vertexBufferData.SysMemPitch = 0;
+			vertexBufferData.SysMemSlicePitch = 0;
+			CD3D11_BUFFER_DESC vertexBufferDesc(sizeof(Vertex) * realVertices.size(), D3D11_BIND_VERTEX_BUFFER);
+			DX::ThrowIfFailed(
+				m_deviceResources->GetD3DDevice()->CreateBuffer(
+					&vertexBufferDesc,
+					&vertexBufferData,
+					&m_vertexBuffer
+				)
+			);
+		}
 		// Load mesh indices.
 
-		m_indexCount = bufferIndex.size();
+		if (!isGeometry)
+		{
+			m_indexCount = bufferIndex.size();
 
-		D3D11_SUBRESOURCE_DATA indexBufferData = { 0 };
-		indexBufferData.pSysMem = bufferIndex.data();
-		indexBufferData.SysMemPitch = 0;
-		indexBufferData.SysMemSlicePitch = 0;
-		CD3D11_BUFFER_DESC indexBufferDesc(sizeof(unsigned int) * bufferIndex.size(), D3D11_BIND_INDEX_BUFFER);
-		DX::ThrowIfFailed(
-			m_deviceResources->GetD3DDevice()->CreateBuffer(
-				&indexBufferDesc,
-				&indexBufferData,
-				&m_indexBuffer
-			)
-		);
+			D3D11_SUBRESOURCE_DATA indexBufferData = { 0 };
+			indexBufferData.pSysMem = bufferIndex.data();
+			indexBufferData.SysMemPitch = 0;
+			indexBufferData.SysMemSlicePitch = 0;
+			CD3D11_BUFFER_DESC indexBufferDesc(sizeof(unsigned int) * bufferIndex.size(), D3D11_BIND_INDEX_BUFFER);
+			DX::ThrowIfFailed(
+				m_deviceResources->GetD3DDevice()->CreateBuffer(
+					&indexBufferDesc,
+					&indexBufferData,
+					&m_indexBuffer
+				)
+			);
+		}
 
 		if (isInstanced)
 		{
@@ -370,16 +410,19 @@ void Model::Render()
 		0
 	);
 
-	//Prepare light constant buffer
-	context->UpdateSubresource1(
-		m_lightConstantBuffer.Get(),
-		0,
-		NULL,
-		&m_lightConstantBufferData,
-		0,
-		0,
-		0
-	);
+	//if (!isGeometry)
+	{
+		//Prepare light constant buffer
+		context->UpdateSubresource1(
+			m_lightConstantBuffer.Get(),
+			0,
+			NULL,
+			&m_lightConstantBufferData,
+			0,
+			0,
+			0
+		);
+	}
 
 	// Each vertex is one instance of the Vertex struct.
 	UINT stride = sizeof(Vertex);
@@ -412,13 +455,23 @@ void Model::Render()
 		);
 	}
 
-	context->IASetIndexBuffer(
-		m_indexBuffer.Get(),
-		DXGI_FORMAT_R32_UINT, // Each index is one 32-bit unsigned integer (uint).
-		0
-	);
+	if (!isGeometry)
+	{
+		context->IASetIndexBuffer(
+			m_indexBuffer.Get(),
+			DXGI_FORMAT_R32_UINT, // Each index is one 32-bit unsigned integer (uint).
+			0
+		);
+	}
 
-	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	if (isGeometry)
+	{
+		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+	}
+	else
+	{
+		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	}
 
 	context->IASetInputLayout(m_inputLayout.Get());
 
@@ -441,22 +494,39 @@ void Model::Render()
 	}
 
 	// Send the constant buffer to the graphics device.
-	context->VSSetConstantBuffers1(
-		0,
-		1,
-		m_constantBuffer.GetAddressOf(),
-		nullptr,
-		nullptr
-	);
+	
+	if (!isGeometry)
+	{
+		context->VSSetConstantBuffers1(
+			0,
+			1,
+			m_constantBuffer.GetAddressOf(),
+			nullptr,
+			nullptr
+		);
+	}
+	else
+	{
+		context->GSSetConstantBuffers1(
+			0,
+			1,
+			m_constantBuffer.GetAddressOf(),
+			nullptr,
+			nullptr
+		);
+	}
 
-	//Send light constant buffer to pixel shader
-	context->PSSetConstantBuffers1(
-		0,
-		1,
-		m_lightConstantBuffer.GetAddressOf(),
-		nullptr,
-		nullptr
-	);
+	//if (!isGeometry)
+	{
+		//Send light constant buffer to pixel shader
+		context->PSSetConstantBuffers1(
+			0,
+			1,
+			m_lightConstantBuffer.GetAddressOf(),
+			nullptr,
+			nullptr
+		);
+	}
 
 	// Attach our pixel shader.
 	//if (isSkybox)
@@ -480,6 +550,10 @@ void Model::Render()
 	{
 		context->GSSetShader(m_geometryShader.Get(), nullptr, 0);
 	}
+	else
+	{
+		context->GSSetShader(NULL, NULL, 0);
+	}
 
 	if (isSkybox)
 	{
@@ -490,22 +564,40 @@ void Model::Render()
 		context->PSSetShaderResources(0, 1, m_shaderResourceView.GetAddressOf());
 	}
 
-	context->PSSetShaderResources(1, 1, m_normalShaderResourceView.GetAddressOf());
+	//if (!isGeometry)
+	{
+		context->PSSetShaderResources(1, 1, m_normalShaderResourceView.GetAddressOf());
+	}
 
 	//context->PSSetSamplers(0, 1, m_samplerState.GetAddressOf());
 
 	// Draw the objects.
 	if (isInstanced)
 	{
+		context->RSSetViewports(1, &m_deviceResources->GetScreenViewport());
 		context->DrawIndexedInstanced(m_indexCount, numOfInstances, 0, 0, 0);
+
+		m_constantBufferData.view = bottomScreenView;
+		context->RSSetViewports(1, &m_deviceResources->GetBottomScreenViewport());
+		context->DrawIndexedInstanced(m_indexCount, numOfInstances, 0, 0, 0);
+	}
+	else if (isGeometry)
+	{
+		context->RSSetViewports(1, &m_deviceResources->GetScreenViewport());
+		context->Draw(realVertices.size(), 0);
+
+		m_constantBufferData.view = bottomScreenView;
+		context->RSSetViewports(1, &m_deviceResources->GetBottomScreenViewport());
+		context->Draw(realVertices.size(), 0);
 	}
 	else
 	{
-		context->DrawIndexed(
-			m_indexCount,
-			0,
-			0
-		);
+		context->RSSetViewports(1, &m_deviceResources->GetScreenViewport());
+		context->DrawIndexed(m_indexCount, 0, 0);
+
+		m_constantBufferData.view = bottomScreenView;
+		context->RSSetViewports(1, &m_deviceResources->GetBottomScreenViewport());
+		context->DrawIndexed(m_indexCount, 0, 0);
 	}
 }
 
@@ -522,6 +614,11 @@ void Model::SetProjection(XMMATRIX projection)
 void Model::SetView(XMMATRIX view)
 {
 	XMStoreFloat4x4(&m_constantBufferData.view, view);
+}
+
+void Model::SetSecondView(XMMATRIX view)
+{
+	XMStoreFloat4x4(&bottomScreenView, view);
 }
 
 void Model::SetTexturePath(string path)
@@ -775,6 +872,6 @@ void Model::SetGeometryShader(vector<Vertex> points)
 {
 	isGeometry = true;
 
-	geometryPoints = points;
+	realVertices = points;
 }
 

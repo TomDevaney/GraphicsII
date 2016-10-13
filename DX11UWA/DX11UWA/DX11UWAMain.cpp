@@ -66,8 +66,14 @@ bool DX11UWAMain::Render(void)
 	auto context = m_deviceResources->GetD3DDeviceContext();
 
 	// Reset the viewport to target the whole screen.
-	auto viewport = m_deviceResources->GetScreenViewport();
-	context->RSSetViewports(1, &viewport);
+	//auto viewport = m_deviceResources->GetScreenViewport();
+	//context->RSSetViewports(1, &viewport);
+
+	auto topViewport = m_deviceResources->GetScreenViewport();
+	auto bottomViewport = m_deviceResources->GetBottomScreenViewport();
+
+	D3D11_VIEWPORT viewPorts[] = { topViewport, bottomViewport };
+	context->RSSetViewports(2, viewPorts);
 
 	// Reset render targets to the screen.
 	ID3D11RenderTargetView *const targets[1] = { m_deviceResources->GetBackBufferRenderTargetView() };
