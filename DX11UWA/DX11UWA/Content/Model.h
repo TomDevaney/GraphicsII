@@ -62,6 +62,7 @@ private:
 	//vector<Vertex> geometryPoints;
 
 	//Splitscreen members
+	XMFLOAT4X4 topScreenView;
 	XMFLOAT4X4 bottomScreenView;
 	XMFLOAT3 secondCamPosition;
 

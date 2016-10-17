@@ -107,7 +107,7 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 
 	//Set spotlight to camera position
 	skyBox.UpdateSpotLight(m_camera);
-	skyBox.Translate({ m_camera._41, m_camera._42, m_camera._43 }); //breaks spotlight on skyBox
+	//skyBox.Translate({ m_camera._41, m_camera._42, m_camera._43 }); //breaks spotlight on skyBox
 	
 	for (int i = 0; i < models.size(); ++i)
 	{
@@ -563,7 +563,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	skyBox.SetIsSkybox(true);
 	skyBox.ReadFile();
 	skyBox.CreateDeviceDependentResources(m_deviceResources);
-	skyBox.Translate({ 0, 0, 0 });
+	skyBox.SetIdentityMatrix();
 	skyBox.SetScaleMatrix(50, 50, 50);
 
 
@@ -580,7 +580,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 
 	models.push_back(&tv);
 
-	cube.SetFilePath("Assets/Cube.obj");
+	cube.SetFilePath("Assets/Plane.obj");
 	cube.SetShaderResourceView(m_deviceResources->GetShaderResourceView(), true);
 	//cube.SetTexturePath("Assets/Diffuse_Treehouse.dds");
 	//handle render to texture
@@ -627,7 +627,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	cube.ReadFile();
 	cube.CreateDeviceDependentResources(m_deviceResources);
 	cube.SetIdentityMatrix();
-	cube.Translate(XMFLOAT3{ -1, 1, 1 });
+	cube.Translate(XMFLOAT3{ -3, 1, 5 });
 
 	models.push_back(&cube);
 

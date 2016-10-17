@@ -366,6 +366,13 @@ void Model::Render()
 
 	auto context = m_deviceResources->GetD3DDeviceContext();
 
+	if (filePath == "Assets/SkyBox.obj")
+	{
+		m_constantBufferData.view._14 = 0;
+		m_constantBufferData.view._24 = 0;
+		m_constantBufferData.view._34 = 0;
+	}
+
 	//Set sampler state
 	context->PSSetSamplers(0, 1, &m_samplerState);
 
@@ -562,6 +569,13 @@ void Model::Render()
 	}
 
 
+	if (filePath == "Assets/SkyBox.obj")
+	{
+		bottomScreenView._14 = 0;
+		bottomScreenView._24 = 0;
+		bottomScreenView._34 = 0;
+	}
+
 	for (int i = 0; i < loopCount; ++i)
 	{
 		if (i == 1)
@@ -581,12 +595,12 @@ void Model::Render()
 			context->RSSetViewports(1, &m_deviceResources->GetScreenViewport());
 			context->DrawIndexedInstanced(m_indexCount, numOfInstances, 0, 0, 0);
 
-			if (filePath == "Assets/SkyBox.obj")
-			{
-				m_constantBufferData.model._14 = secondCamPosition.x;
-				m_constantBufferData.model._24 = secondCamPosition.y;
-				m_constantBufferData.model._34 = secondCamPosition.z;
-			}
+			//if (filePath == "Assets/SkyBox.obj")
+			//{
+			//	m_constantBufferData.view._14 = 0;
+			//	m_constantBufferData.view._24 = 0;
+			//	m_constantBufferData.view._34 = 0;
+			//}
 
 			m_constantBufferData.view = bottomScreenView;
 			context->UpdateSubresource1(m_constantBuffer.Get(), 0, NULL, &m_constantBufferData, 0, 0, 0);
@@ -600,12 +614,12 @@ void Model::Render()
 			context->RSSetViewports(1, &m_deviceResources->GetScreenViewport());
 			context->Draw(realVertices.size(), 0);
 
-			if (filePath == "Assets/SkyBox.obj")
-			{
-				m_constantBufferData.model._14 = secondCamPosition.x;
-				m_constantBufferData.model._24 = secondCamPosition.y;
-				m_constantBufferData.model._34 = secondCamPosition.z;
-			}
+			//if (filePath == "Assets/SkyBox.obj")
+			//{
+			//	m_constantBufferData.view._14 = 0;
+			//	m_constantBufferData.view._24 = 0;
+			//	m_constantBufferData.view._34 = 0;
+			//}
 
 			m_constantBufferData.view = bottomScreenView;
 			context->UpdateSubresource1(m_constantBuffer.Get(), 0, NULL, &m_constantBufferData, 0, 0, 0);
@@ -638,12 +652,12 @@ void Model::Render()
 				context->DrawIndexed(m_indexCount, 0, 0);
 			}
 
-			if (filePath == "Assets/SkyBox.obj")
-			{
-				m_constantBufferData.model._14 = secondCamPosition.x;
-				m_constantBufferData.model._24 = secondCamPosition.y;
-				m_constantBufferData.model._34 = secondCamPosition.z;
-			}
+			//if (filePath == "Assets/SkyBox.obj")
+			//{
+			//	m_constantBufferData.view._14 = 0;
+			//	m_constantBufferData.view._24 = 0;
+			//	m_constantBufferData.view._34 = 0;
+			//}
 
 			m_constantBufferData.view = bottomScreenView;
 			context->UpdateSubresource1(m_constantBuffer.Get(), 0, NULL, &m_constantBufferData, 0, 0, 0);
