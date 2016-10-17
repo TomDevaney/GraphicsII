@@ -49,5 +49,9 @@ namespace DX11UWA
 
 		DirectX::XMFLOAT4 isSkyBox;
 		DirectX::XMFLOAT4 isNormalMap;
+		DirectX::XMFLOAT4 isSceneTexture;
+		DirectX::XMFLOAT4 isTransparent;
+
+		DirectX::XMFLOAT4 camPosition;
 	};
 }

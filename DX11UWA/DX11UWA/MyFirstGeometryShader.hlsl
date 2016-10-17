@@ -25,7 +25,7 @@ struct GeometryShaderOutput
 	float4 localPosition : POSITION1;
 	float3 tangent : TANGENT;
 	float3 binormal : BINORMAL;
-	//float3 pixelColor : COLOR; //I add color in GS
+	//float4 pixelColor : COLOR; //I add color in GS
 };
 
 

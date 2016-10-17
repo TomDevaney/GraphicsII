@@ -12,6 +12,7 @@ cbuffer ModelViewProjectionConstantBuffer : register(b0)
 struct VertexShaderInput
 {
 	float3 pos : POSITION;
+	//float4 pixelColor : COLOR;
 	float2 uv : TEXCOORD;
 	float3 normal : NORMAL;
 	float3 tangent : TANGENT;
@@ -34,6 +35,7 @@ struct PixelShaderInput
 	float4 localPosition : POSITION1;
 	float3 tangent : TANGENT;
 	float3 binormal : BINORMAL;
+	//float4 pixelColor : COLOR;
 };
 
 // Simple shader to do vertex processing on the GPU.
@@ -79,6 +81,9 @@ PixelShaderInput main(VertexShaderInput input, InstanceData instanceInput)
 	// handle normal mapping
 	output.tangent = normalize(mul(input.tangent, model));
 	output.binormal = normalize(mul(input.binormal, model));
+
+	//pass color
+	//output.pixelColor = input.pixelColor;
 
 	return output;
 }

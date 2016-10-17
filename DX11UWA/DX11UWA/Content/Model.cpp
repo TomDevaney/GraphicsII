@@ -84,21 +84,6 @@ void Model::ReadFile()
 		}
 	}
 
-	//for (int i = 0; i < vertexIndices.size(); i += 3)
-	//{
-	//	unsigned int temp = vertexIndices[i + 1];
-	//	vertexIndices[i + 1] = vertexIndices[i + 2];
-	//	vertexIndices[i + 2] = temp;
-
-	//	temp = uvIndices[i + 1];
-	//	uvIndices[i + 1] = uvIndices[i + 2];
-	//	uvIndices[i + 2] = temp;
-
-	//	temp = normalIndices[i + 1];
-	//	normalIndices[i + 1] = normalIndices[i + 2];
-	//	normalIndices[i + 2] = temp;
-	//}
-
 	bool unique = true;
 
 	for (int i = 0; i < vertexIndices.size(); ++i)
@@ -142,36 +127,6 @@ void Model::SetFilePath(string path)
 	filePath = path;
 }
 
-//void Model::SetHeaderDetails(const OBJ_VERT *data, unsigned int numOfVerts)
-//{
-//	modelData = data;
-//	numVerts = numOfVerts;
-//
-//	//vertices = new XMFLOAT3[numOfVerts];
-//	//uvs = new XMFLOAT2[numOfVerts];
-//	//normals = new XMFLOAT3[numOfVerts];
-//}
-//
-//void Model::ReadFromHeader()
-//{
-//	//for (int i = 0; i < numVerts; ++i)
-//	//{
-//	//	//set xyz
-//	//	vertices[i].x = modelData[i].pos[0] * 0.1f;
-//	//	vertices[i].y = modelData[i].pos[1] * 0.1f;
-//	//	vertices[i].z = modelData[i].pos[2] * 0.1f;
-//
-//	//	//set uvs & w
-//	//	uvs[i].x = modelData[i].uvw[0];
-//	//	uvs[i].y = modelData[i].uvw[1];
-//
-//	//	//set normals
-//	//	normals[i].x = modelData[i].nrm[0];
-//	//	normals[i].y = modelData[i].nrm[1];
-//	//	normals[i].z = modelData[i].nrm[2];
-//	//}
-//}
-
 void Model::CreateDeviceDependentResources(const std::shared_ptr<DX::DeviceResources>& deviceResources)
 {
 	m_deviceResources = deviceResources;
@@ -184,14 +139,26 @@ void Model::CreateDeviceDependentResources(const std::shared_ptr<DX::DeviceResou
 	if (isGeometry)
 	{
 		loadVSTask = DX::ReadDataAsync(L"VS_TriangleGS.cso");
-		//loadPSTask = DX::ReadDataAsync(L"PS_TriangleGS.cso");
 	}
 
-	//auto loadVSTask2 = DX::ReadDataAsync(L"SkyBoxVertexShader.cso");
-	//auto loadPSTask2 = DX::ReadDataAsync(L"SkyBoxPixelShader.cso");
+	//create sampler state
+	CD3D11_SAMPLER_DESC samplerDesc = { };
 
-//	m_lightConstantBufferData.isSkyBox.x = 0;
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.MaxAnisotropy = 1;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	samplerDesc.MipLODBias = 0.0f;
+	samplerDesc.MinLOD = 0;
+	samplerDesc.BorderColor[0] = 0;
+	samplerDesc.BorderColor[1] = 0;
+	samplerDesc.BorderColor[2] = 0;
+	samplerDesc.BorderColor[3] = 0;
 
+	m_deviceResources->GetD3DDevice()->CreateSamplerState(&samplerDesc, &m_samplerState);
 
 	// After the vertex shader file is loaded, create the shader and input layout.
 	auto createVSTask = loadVSTask.then([this](const std::vector<byte>& fileData) {
@@ -204,46 +171,28 @@ void Model::CreateDeviceDependentResources(const std::shared_ptr<DX::DeviceResou
 			)
 		);
 
-		//if (isGeometry)
-		//{
-		//	static const D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
-		//	{
-		//		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		//	};
-
-		//	DX::ThrowIfFailed(
-		//		m_deviceResources->GetD3DDevice()->CreateInputLayout(
-		//			vertexDesc,
-		//			ARRAYSIZE(vertexDesc),
-		//			&fileData[0],
-		//			fileData.size(),
-		//			&m_inputLayout
-		//		)
-		//	);
-		//}
-		//else
+		static const D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 		{
-			static const D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
-			{
-				{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-				{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-				{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-				{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-				{ "BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			//{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 
-				{ "INSTANCEPOS", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
-			};
 
-			DX::ThrowIfFailed(
-				m_deviceResources->GetD3DDevice()->CreateInputLayout(
-					vertexDesc,
-					ARRAYSIZE(vertexDesc),
-					&fileData[0],
-					fileData.size(),
-					&m_inputLayout
-				)
-			);
-		}
+			{ "INSTANCEPOS", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+		};
+
+		DX::ThrowIfFailed(
+			m_deviceResources->GetD3DDevice()->CreateInputLayout(
+				vertexDesc,
+				ARRAYSIZE(vertexDesc),
+				&fileData[0],
+				fileData.size(),
+				&m_inputLayout
+			)
+		);
 
 	});
 
@@ -291,22 +240,6 @@ void Model::CreateDeviceDependentResources(const std::shared_ptr<DX::DeviceResou
 	// Once both shaders are loaded, create the mesh.
 	auto createModelTask = (createPSTask && createVSTask).then([this]() {
 
-		//if (isGeometry)
-		//{
-		//	D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
-		//	vertexBufferData.pSysMem = geometryPoints.data();
-		//	vertexBufferData.SysMemPitch = 0;
-		//	vertexBufferData.SysMemSlicePitch = 0;
-		//	CD3D11_BUFFER_DESC vertexBufferDesc(sizeof(Vertex) * geometryPoints.size(), D3D11_BIND_VERTEX_BUFFER);
-		//	DX::ThrowIfFailed(
-		//		m_deviceResources->GetD3DDevice()->CreateBuffer(
-		//			&vertexBufferDesc,
-		//			&vertexBufferData,
-		//			&m_vertexBuffer
-		//		)
-		//	);
-		//}
-		//else
 		{
 			D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
 			vertexBufferData.pSysMem = realVertices.data();
@@ -376,9 +309,43 @@ void Model::CreateDeviceDependentResources(const std::shared_ptr<DX::DeviceResou
 		}
 	});
 
+	//create blend state
+	D3D11_BLEND_DESC blendDesc = { 0 };
+	D3D11_RENDER_TARGET_BLEND_DESC rtbDesc = { 0 };
+
+	rtbDesc.BlendEnable = true;
+	rtbDesc.SrcBlend = D3D11_BLEND_SRC_COLOR;
+	rtbDesc.DestBlend = D3D11_BLEND_BLEND_FACTOR;
+	rtbDesc.BlendOp = D3D11_BLEND_OP_ADD;
+	rtbDesc.SrcBlendAlpha = D3D11_BLEND_ONE;
+	rtbDesc.DestBlendAlpha = D3D11_BLEND_ZERO;
+	rtbDesc.BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	rtbDesc.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+	blendDesc.AlphaToCoverageEnable = false;
+	blendDesc.RenderTarget[0] = rtbDesc;
+
+	m_deviceResources->GetD3DDevice()->CreateBlendState(&blendDesc, &transparency);
+
+	//create rasterizer states
+	D3D11_RASTERIZER_DESC rastDesc;
+	ZeroMemory(&rastDesc, sizeof(D3D11_RASTERIZER_DESC));
+
+	rastDesc.FillMode = D3D11_FILL_SOLID;
+	rastDesc.CullMode = D3D11_CULL_BACK;
+
+	rastDesc.FrontCounterClockwise = true;
+	m_deviceResources->GetD3DDevice()->CreateRasterizerState(&rastDesc, &CCWcullMode);
+
+	rastDesc.FrontCounterClockwise = false;
+	m_deviceResources->GetD3DDevice()->CreateRasterizerState(&rastDesc, &CWcullMode);
+
 	//Handle texture
-	wstring wideTexturePath = wstring(texturePath.begin(), texturePath.end());
-	HRESULT hr = CreateDDSTextureFromFile(m_deviceResources->GetD3DDevice(), wideTexturePath.c_str(), nullptr, &m_shaderResourceView);
+	if (!isSecondRTV)
+	{
+		wstring wideTexturePath = wstring(texturePath.begin(), texturePath.end());
+		HRESULT hr = CreateDDSTextureFromFile(m_deviceResources->GetD3DDevice(), wideTexturePath.c_str(), nullptr, &m_shaderResourceView);
+	}
 
 	//Handle normal texture
 	wstring wideNormalTexturePath = wstring(normalPath.begin(), normalPath.end());
@@ -398,6 +365,25 @@ void Model::Render()
 	}
 
 	auto context = m_deviceResources->GetD3DDeviceContext();
+
+	//Set sampler state
+	context->PSSetSamplers(0, 1, &m_samplerState);
+
+	//Change to respective RTV
+
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> nullSRV = NULL;
+	context->PSSetShaderResources(0, 1, nullSRV.GetAddressOf());
+
+	if (isSecondRTV)
+	{
+		ID3D11RenderTargetView *const targets[1] = { m_deviceResources->GetBackBufferRenderTargetView() };
+		context->OMSetRenderTargets(1, targets, m_deviceResources->GetDepthStencilView());
+	}
+	else
+	{
+		ID3D11RenderTargetView *const targets[1] = { m_deviceResources->GetBackBufferRenderTargetView2() };
+		context->OMSetRenderTargets(1, targets, m_deviceResources->GetDepthStencilView2());
+	}
 
 	// Prepare the constant buffer to send it to the graphics device.
 	context->UpdateSubresource1(
@@ -475,16 +461,7 @@ void Model::Render()
 
 	context->IASetInputLayout(m_inputLayout.Get());
 
-	// Attach our vertex shader.
-	//if (isSkybox)
-	//{
-	//	context->VSSetShader(
-	//		m_skyBoxVertexShader.Get(),
-	//		nullptr,
-	//		0
-	//	);
-	//}
-	//else
+	// Attach our vertex shader
 	{
 		context->VSSetShader(
 			m_vertexShader.Get(),
@@ -494,7 +471,6 @@ void Model::Render()
 	}
 
 	// Send the constant buffer to the graphics device.
-	
 	if (!isGeometry)
 	{
 		context->VSSetConstantBuffers1(
@@ -516,36 +492,23 @@ void Model::Render()
 		);
 	}
 
-	//if (!isGeometry)
-	{
-		//Send light constant buffer to pixel shader
-		context->PSSetConstantBuffers1(
-			0,
-			1,
-			m_lightConstantBuffer.GetAddressOf(),
-			nullptr,
-			nullptr
-		);
-	}
+	//Send light constant buffer to pixel shader
+	context->PSSetConstantBuffers1(
+		0,
+		1,
+		m_lightConstantBuffer.GetAddressOf(),
+		nullptr,
+		nullptr
+	);
 
 	// Attach our pixel shader.
-	//if (isSkybox)
-	//{
-	//	context->PSSetShader(
-	//		m_skyBoxPixelShader.Get(),
-	//		nullptr,
-	//		0
-	//	);
-	//}
-	//else
-	{
-		context->PSSetShader(
-			m_pixelShader.Get(),
-			nullptr,
-			0
-		);
-	}
+	context->PSSetShader(
+		m_pixelShader.Get(),
+		nullptr,
+		0
+	);
 
+	// Attach our geometry shader
 	if (isGeometry)
 	{
 		context->GSSetShader(m_geometryShader.Get(), nullptr, 0);
@@ -555,6 +518,13 @@ void Model::Render()
 		context->GSSetShader(NULL, NULL, 0);
 	}
 
+	//update rtv srv
+	if (isSecondRTV)
+	{
+		m_shaderResourceView = m_deviceResources->GetShaderResourceView();
+	}
+
+	//set either skybox texturecube or texture2d srv
 	if (isSkybox)
 	{
 		context->PSSetShaderResources(2, 1, m_shaderResourceView.GetAddressOf());
@@ -564,46 +534,150 @@ void Model::Render()
 		context->PSSetShaderResources(0, 1, m_shaderResourceView.GetAddressOf());
 	}
 
-	//if (!isGeometry)
-	{
-		context->PSSetShaderResources(1, 1, m_normalShaderResourceView.GetAddressOf());
-	}
+	//set normal mapping srv
+	context->PSSetShaderResources(1, 1, m_normalShaderResourceView.GetAddressOf());
 
 	//context->PSSetSamplers(0, 1, m_samplerState.GetAddressOf());
+	
+	unsigned int loopCount = 1;
 
-	// Draw the objects.
-	if (isInstanced)
+	//Change to respective RTV
+	if (!isSecondRTV)
 	{
-		context->RSSetViewports(1, &m_deviceResources->GetScreenViewport());
-		context->DrawIndexedInstanced(m_indexCount, numOfInstances, 0, 0, 0);
+		ID3D11RenderTargetView *const targets[1] = { m_deviceResources->GetBackBufferRenderTargetView2() };
+		context->OMSetRenderTargets(1, targets, m_deviceResources->GetDepthStencilView2());
 
-		m_constantBufferData.view = bottomScreenView;
-		context->RSSetViewports(1, &m_deviceResources->GetBottomScreenViewport());
-		context->DrawIndexedInstanced(m_indexCount, numOfInstances, 0, 0, 0);
-	}
-	else if (isGeometry)
-	{
-		context->RSSetViewports(1, &m_deviceResources->GetScreenViewport());
-		context->Draw(realVertices.size(), 0);
+		//ID3D11RenderTargetView *const targets2[1] = { m_deviceResources->GetBackBufferRenderTargetView() };
+		//context->OMSetRenderTargets(1, targets2, m_deviceResources->GetDepthStencilView());
 
-		m_constantBufferData.view = bottomScreenView;
-		context->RSSetViewports(1, &m_deviceResources->GetBottomScreenViewport());
-		context->Draw(realVertices.size(), 0);
+		loopCount = 2; //when I do both, then when I move, the scene doesn't work
+		//loopCount = 1;
 	}
 	else
 	{
-		context->RSSetViewports(1, &m_deviceResources->GetScreenViewport());
-		context->DrawIndexed(m_indexCount, 0, 0);
+		ID3D11RenderTargetView *const targets[1] = { m_deviceResources->GetBackBufferRenderTargetView() };
+		context->OMSetRenderTargets(1, targets, m_deviceResources->GetDepthStencilView());
 
-		m_constantBufferData.view = bottomScreenView;
-		context->RSSetViewports(1, &m_deviceResources->GetBottomScreenViewport());
-		context->DrawIndexed(m_indexCount, 0, 0);
+		loopCount = 1;
+	}
+
+
+	for (int i = 0; i < loopCount; ++i)
+	{
+		if (i == 1)
+		{
+			ID3D11RenderTargetView *const targets[1] = { m_deviceResources->GetBackBufferRenderTargetView2() };
+			context->OMSetRenderTargets(1, targets, m_deviceResources->GetDepthStencilView2());
+		}
+		else
+		{
+			ID3D11RenderTargetView *const targets2[1] = { m_deviceResources->GetBackBufferRenderTargetView() };
+			context->OMSetRenderTargets(1, targets2, m_deviceResources->GetDepthStencilView());
+		}
+
+		// Draw the objects.
+		if (isInstanced)
+		{
+			context->RSSetViewports(1, &m_deviceResources->GetScreenViewport());
+			context->DrawIndexedInstanced(m_indexCount, numOfInstances, 0, 0, 0);
+
+			if (filePath == "Assets/SkyBox.obj")
+			{
+				m_constantBufferData.model._14 = secondCamPosition.x;
+				m_constantBufferData.model._24 = secondCamPosition.y;
+				m_constantBufferData.model._34 = secondCamPosition.z;
+			}
+
+			m_constantBufferData.view = bottomScreenView;
+			context->UpdateSubresource1(m_constantBuffer.Get(), 0, NULL, &m_constantBufferData, 0, 0, 0);
+			context->VSSetConstantBuffers1(0, 1, m_constantBuffer.GetAddressOf(), nullptr, nullptr);
+
+			context->RSSetViewports(1, &m_deviceResources->GetBottomScreenViewport());
+			context->DrawIndexedInstanced(m_indexCount, numOfInstances, 0, 0, 0);
+		}
+		else if (isGeometry)
+		{
+			context->RSSetViewports(1, &m_deviceResources->GetScreenViewport());
+			context->Draw(realVertices.size(), 0);
+
+			if (filePath == "Assets/SkyBox.obj")
+			{
+				m_constantBufferData.model._14 = secondCamPosition.x;
+				m_constantBufferData.model._24 = secondCamPosition.y;
+				m_constantBufferData.model._34 = secondCamPosition.z;
+			}
+
+			m_constantBufferData.view = bottomScreenView;
+			context->UpdateSubresource1(m_constantBuffer.Get(), 0, NULL, &m_constantBufferData, 0, 0, 0);
+			context->GSSetConstantBuffers1(0, 1, m_constantBuffer.GetAddressOf(), nullptr, nullptr);
+
+			context->RSSetViewports(1, &m_deviceResources->GetBottomScreenViewport());
+			context->Draw(realVertices.size(), 0);
+		}
+		else //regular
+		{
+			if (m_lightConstantBufferData.isTransparent.x)
+			{
+				float blendFactor[4] = { 0.75f, 0.75f, 0.75f, 1.0f };
+
+				context->OMSetBlendState(transparency.Get(), blendFactor, 0xffffffff);
+				context->RSSetState(CCWcullMode.Get());
+			}
+			else
+			{
+				context->OMSetBlendState(0, 0, 0xffffffff);
+				context->RSSetState(CWcullMode.Get());
+			}
+
+			context->RSSetViewports(1, &m_deviceResources->GetScreenViewport());
+			context->DrawIndexed(m_indexCount, 0, 0);
+
+			if (m_lightConstantBufferData.isTransparent.x)
+			{
+				context->RSSetState(CWcullMode.Get());
+				context->DrawIndexed(m_indexCount, 0, 0);
+			}
+
+			if (filePath == "Assets/SkyBox.obj")
+			{
+				m_constantBufferData.model._14 = secondCamPosition.x;
+				m_constantBufferData.model._24 = secondCamPosition.y;
+				m_constantBufferData.model._34 = secondCamPosition.z;
+			}
+
+			m_constantBufferData.view = bottomScreenView;
+			context->UpdateSubresource1(m_constantBuffer.Get(), 0, NULL, &m_constantBufferData, 0, 0, 0);
+			context->VSSetConstantBuffers1(0, 1, m_constantBuffer.GetAddressOf(), nullptr, nullptr);
+
+			if (m_lightConstantBufferData.isTransparent.x)
+			{
+				context->RSSetState(CCWcullMode.Get());
+			}
+			else
+			{
+				context->RSSetState(CWcullMode.Get());
+			}
+
+			context->RSSetViewports(1, &m_deviceResources->GetBottomScreenViewport());
+			context->DrawIndexed(m_indexCount, 0, 0);
+
+			if (m_lightConstantBufferData.isTransparent.x)
+			{
+				context->RSSetState(CWcullMode.Get());
+				context->DrawIndexed(m_indexCount, 0, 0);
+			}
+		}
 	}
 }
 
 void Model::Translate(XMFLOAT3 distance)
 {
 	XMStoreFloat4x4(&m_constantBufferData.model, XMMatrixTranspose(XMMatrixTranslation(distance.x, distance.y, distance.z)));
+}
+
+void Model::TranslateRotate(XMFLOAT3 distance, float radians)
+{
+
 }
 
 void Model::SetProjection(XMMATRIX projection)
@@ -875,3 +949,97 @@ void Model::SetGeometryShader(vector<Vertex> points)
 	realVertices = points;
 }
 
+void Model::SetShaderResourceView(ID3D11ShaderResourceView* srv, bool isRenderToTexture)
+{
+	m_shaderResourceView = srv;
+	isSecondRTV = isRenderToTexture;
+}
+
+void Model::SetVerticesAndIndices(Vertex* vertices, unsigned int* indices, unsigned int verticesSize, unsigned int indicesSize)
+{
+	realVertices.resize(verticesSize);
+
+	for (int i = 0; i < verticesSize; ++i)
+	{
+		realVertices[i] = vertices[i];
+	}
+
+	bufferIndex.resize(indicesSize);
+
+	for (int i = 0; i < indicesSize; ++i)
+	{
+		bufferIndex[i] = indices[i];
+	}
+}
+
+void Model::SetIsSceneTexture(bool toggle)
+{
+	m_lightConstantBufferData.isSceneTexture.x = toggle;
+}
+
+void Model::SetIsTransparent(bool toggle)
+{
+	m_lightConstantBufferData.isTransparent.x = toggle;
+}
+
+vector<Model*> Model::UpdateTransparentObjects(vector<Model*> transparentModels)
+{
+	//vector<Model*> tempModels;
+	vector<XMFLOAT3> positions;
+	vector<float> distancesX;
+	vector<float> distancesY;
+	vector<float> distancesZ;
+	vector<float> totalDistances;
+
+
+	positions.resize(transparentModels.size());
+	distancesX.resize(transparentModels.size());
+	distancesY.resize(transparentModels.size());
+	distancesZ.resize(transparentModels.size());
+	totalDistances.resize(transparentModels.size());
+	//tempModels.resize(transparentModels.size());
+
+	for (int i = 0; i < transparentModels.size(); ++i)
+	{
+		positions[i] = ( XMFLOAT3(transparentModels[i]->m_constantBufferData.model._14, transparentModels[i]->m_constantBufferData.model._24, transparentModels[i]->m_constantBufferData.model._34));
+		distancesX[i] = (positions[i].x - m_lightConstantBufferData.camPosition.x);
+		distancesY[i] = (positions[i].y - m_lightConstantBufferData.camPosition.y);
+		distancesX[i] = (positions[i].z - m_lightConstantBufferData.camPosition.z);
+		totalDistances[i] = (distancesX[i] * distancesX[i] + distancesY[i] * distancesY[i] + distancesZ[i] * distancesZ[i]);
+	}
+
+	int greatest = 0;
+
+	for (int i = 0; i < transparentModels.size(); ++i)
+	{
+		greatest = i;
+
+		for (int j = 0; j < transparentModels.size(); ++j)
+		{
+			if (totalDistances[j] > totalDistances[greatest])
+			{
+				Model temp;
+
+				temp = *transparentModels[greatest];
+				*transparentModels[greatest] = *transparentModels[j];
+				*transparentModels[j] = temp;
+			}
+		}
+
+		//transparentModels.push_back(transparentModels[greatest]);
+	}
+
+	//transparentModels = tempModels;
+
+	return transparentModels;
+}
+
+void Model::SetCamPosition(XMFLOAT3 position)
+{
+	m_lightConstantBufferData.camPosition = XMFLOAT4(position.x, position.y, position.z, 1);
+}
+
+void Model::SetSecondCamPosition(XMFLOAT3 position)
+{
+	secondCamPosition = position;
+}

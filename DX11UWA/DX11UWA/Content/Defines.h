@@ -21,6 +21,7 @@ using namespace std;
 struct Vertex
 {
 	XMFLOAT3 position;
+	//XMFLOAT4 color;
 	XMFLOAT2 uv;
 	XMFLOAT3 normal;
 	XMFLOAT3 tangent;

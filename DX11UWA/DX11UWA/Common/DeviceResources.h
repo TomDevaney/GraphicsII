@@ -38,8 +38,11 @@ namespace DX
 		D3D_FEATURE_LEVEL			GetDeviceFeatureLevel() const			{ return m_d3dFeatureLevel; }
 		ID3D11RenderTargetView1*	GetBackBufferRenderTargetView() const	{ return m_d3dRenderTargetView.Get(); }
 		ID3D11DepthStencilView*		GetDepthStencilView() const				{ return m_d3dDepthStencilView.Get(); }
+		ID3D11RenderTargetView*	GetBackBufferRenderTargetView2() const  { return m_d3dRenderTargetView2.Get(); }
+		ID3D11DepthStencilView*		GetDepthStencilView2() const			{ return m_d3dDepthStencilView2.Get(); }
 		D3D11_VIEWPORT				GetScreenViewport() const				{ return m_screenViewport; }
 		DirectX::XMFLOAT4X4			GetOrientationTransform3D() const		{ return m_orientationTransform3D; }
+		ID3D11ShaderResourceView*	GetShaderResourceView()					{ return srvCube.Get(); }
 
 		//My accessors
 		D3D11_VIEWPORT				GetBottomScreenViewport() const { return m_bottomScreenViewport; }
@@ -69,7 +72,13 @@ namespace DX
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView1>	m_d3dRenderTargetView;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilView>	m_d3dDepthStencilView;
 		D3D11_VIEWPORT									m_screenViewport;
-		D3D11_VIEWPORT									m_bottomScreenViewport; //My variable
+
+		//My variables
+		D3D11_VIEWPORT									m_bottomScreenViewport; 
+		Microsoft::WRL::ComPtr<ID3D11RenderTargetView>	m_d3dRenderTargetView2;
+		Microsoft::WRL::ComPtr<ID3D11DepthStencilView>	m_d3dDepthStencilView2;
+		Microsoft::WRL::ComPtr<ID3D11Texture2D>			m_offScreenTexture;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srvCube;
 
 		// Direct2D drawing components.
 		Microsoft::WRL::ComPtr<ID2D1Factory3>		m_d2dFactory;

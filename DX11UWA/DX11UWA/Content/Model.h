@@ -63,6 +63,16 @@ private:
 
 	//Splitscreen members
 	XMFLOAT4X4 bottomScreenView;
+	XMFLOAT3 secondCamPosition;
+
+	//Render to Texture members
+	bool isSecondRTV;
+	Microsoft::WRL::ComPtr<ID3D11SamplerState>	m_samplerState;
+
+	//Transparency members
+	Microsoft::WRL::ComPtr<ID3D11BlendState> transparency;
+	Microsoft::WRL::ComPtr<ID3D11RasterizerState> CCWcullMode;
+	Microsoft::WRL::ComPtr<ID3D11RasterizerState> CWcullMode;
 
 	//Helper functions
 	void CalculateTangentBinormal(Vertex v1, Vertex v2, Vertex v3, XMFLOAT3 &tangent, XMFLOAT3 &binormal); //helper function
@@ -76,6 +86,7 @@ public:
 	void Render();
 	void Translate(XMFLOAT3 distance);
 	void Rotate(float radians);
+	void TranslateRotate(XMFLOAT3 distance, float radians);
 	void CalculateNewNormalsTangentsNormals();
 
 	//Getters
@@ -95,10 +106,19 @@ public:
 	void SetIdentityMatrix();
 	void SetScaleMatrix(float x, float y, float z);
 	void SetGeometryShader(vector<Vertex> points);
+	void SetShaderResourceView(ID3D11ShaderResourceView* srv, bool isRenderToTexture);
+	void SetVerticesAndIndices(Vertex* realVertices, unsigned int* bufferIndex, unsigned int verticesSize, unsigned int indicesSize);
+	void SetIsSceneTexture(bool toggle);
+	void SetIsTransparent(bool toggle);
+	void SetCamPosition(XMFLOAT3 position);
+	void SetSecondCamPosition(XMFLOAT3 position);
 
 	//Updaters
 	void UpdateLightRadius(DX::StepTimer const& timer, float min, float max);
 	void UpdateSpotLight(XMFLOAT4X4 camera);
 	void UpdatePointLightPosition(DX::StepTimer const& timer, float min, float max);
 	void UpdateDirectionalLight(DX::StepTimer const& timer, bool left);
+	vector<Model*> UpdateTransparentObjects(vector<Model*> transparentModels);
+
+	//void SetShaderResourceView(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv);
 };

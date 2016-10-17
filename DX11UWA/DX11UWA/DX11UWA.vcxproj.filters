@@ -137,7 +137,7 @@
     <Image Include="Assets\StoreLogo.png">
       <Filter>Assets</Filter>
     </Image>
-    <Image Include="Assets\grass_blade.dds">
+    <Image Include="Assets\TV_D.dds">
       <Filter>Assets\Textures</Filter>
     </Image>
   </ItemGroup>
@@ -206,10 +206,19 @@
     <Media Include="Assets\brownishDirt_seamless.dds" />
     <Media Include="Assets\normal_cartoonWood.dds" />
     <Media Include="Assets\treeWillow_Trunk_D.dds" />
+    <Media Include="Assets\grass_blade.dds" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">
       <Filter>Assets</Filter>
     </AppxManifest>
+  </ItemGroup>
+  <ItemGroup>
+    <Object Include="Assets\TV.obj">
+      <Filter>Assets\Models</Filter>
+    </Object>
+    <Object Include="Assets\Cube.obj">
+      <Filter>Assets\Models</Filter>
+    </Object>
   </ItemGroup>
 </Project>

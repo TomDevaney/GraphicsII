@@ -20,6 +20,7 @@ Sample3DSceneRenderer::Sample3DSceneRenderer(const std::shared_ptr<DX::DeviceRes
 	m_currMousePos = nullptr;
 	m_prevMousePos = nullptr;
 	memset(&m_camera, 0, sizeof(XMFLOAT4X4));
+	memset(&m_bottomCamera, 0, sizeof(XMFLOAT4X4));
 
 	CreateDeviceDependentResources();
 	CreateWindowSizeDependentResources();
@@ -61,6 +62,11 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources(void)
 		models[i]->SetProjection(XMMatrixTranspose(perspectiveMatrix * orientationMatrix));
 	}
 
+	for (int i = 0; i < transparentModels.size(); ++i)
+	{
+		transparentModels[i]->SetProjection(XMMatrixTranspose(perspectiveMatrix * orientationMatrix));
+	}
+
 	// Eye is at (0,0.7,1.5), looking at point (0,-0.1,0) with the up-vector along the y-axis.
 	static const XMVECTORF32 eye = { 0.0f, 0.7f, -1.5f, 0.0f };
 	static const XMVECTORF32 at = { 0.0f, -0.1f, 0.0f, 0.0f };
@@ -68,6 +74,12 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources(void)
 
 	XMStoreFloat4x4(&m_camera, XMMatrixInverse(nullptr, XMMatrixLookAtLH(eye, at, up)));
 	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixTranspose(XMMatrixLookAtLH(eye, at, up)));
+
+	static const XMVECTORF32 eye2 = { 0.0f, 2.0f, 10.0f, 0.0f };
+	static const XMVECTORF32 at2 = { 0.0f, 0.7f, -1.5f, 0.0f };
+	static const XMVECTORF32 up2 = { 0.0f, 1.0f, 0.0f, 0.0f };
+
+	XMStoreFloat4x4(&m_bottomCamera, XMMatrixInverse(nullptr, XMMatrixLookAtLH(eye2, at2, up2)));
 
 	camTarget = XMVectorSet(0, 0, 0, 0);
 }
@@ -101,6 +113,28 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 	{
 		models[i]->UpdateSpotLight(m_camera);
 	}
+
+	//move scene texture to camera position, so I don't see anything else
+	scene.Translate({ m_camera._41, m_camera._42, m_camera._43 + 0.1f });
+
+
+	skyBox.SetSecondCamPosition({ m_bottomCamera._41, m_bottomCamera._42, m_bottomCamera._43 });
+
+	for (int i = 0; i < models.size(); ++i)
+	{
+		models[i]->SetCamPosition({ m_camera._41, m_camera._42, m_camera._43 });
+		models[i]->SetSecondCamPosition({ m_bottomCamera._41, m_bottomCamera._42, m_bottomCamera._43 });
+	}
+
+	//handle transparency stuff
+	for (int i = 0; i < transparentModels.size(); ++i)
+	{
+		transparentModels[i]->SetCamPosition({ m_camera._41, m_camera._42, m_camera._43 });
+		transparentModels[i]->SetSecondCamPosition({ m_bottomCamera._41, m_bottomCamera._42, m_bottomCamera._43 });
+	}
+
+	//transparentModels = transparentModels[0]->UpdateTransparentObjects(transparentModels);
+
 }
 
 // Rotate the 3D cube model a set amount of radians.
@@ -290,10 +324,18 @@ void Sample3DSceneRenderer::Render(void)
 
 	//Set Models View
 	skyBox.SetView(XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
+	skyBox.SetSecondView(XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_bottomCamera))));
+
 	for (int i = 0; i < models.size(); ++i)
 	{
 		models[i]->SetView(XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
 		models[i]->SetSecondView(XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_bottomCamera))));
+	}
+
+	for (int i = 0; i < transparentModels.size(); ++i)
+	{
+		transparentModels[i]->SetView(XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
+		transparentModels[i]->SetSecondView(XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_bottomCamera))));
 	}
 
 	// Prepare the constant buffer to send it to the graphics device.
@@ -323,6 +365,11 @@ void Sample3DSceneRenderer::Render(void)
 	for (int i = 0; i < models.size(); ++i)
 	{
 		models[i]->Render();
+	}
+
+	for (int i = 0; i < transparentModels.size(); ++i)
+	{
+		transparentModels[i]->Render();
 	}
 }
 
@@ -427,6 +474,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	pyramid.SetTexturePath("Assets/cartoonWood_seamless.dds");
 	pyramid.SetDirectionalLight({ 0.577f, 0.577f, -0.577f, 0 }, { 0.75f, 0.75f, 0.94f, 1.0f }, { 0.3f, 0.3f, 0.3f, 0.3f });
 	pyramid.SetPointLight({ 2, 3.0f, 2, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
+	pyramid.SetSpotLight({ 0, 0, 0, 0 }, { 1.0f, 1.0f, 1.0f, 0 }, { 0.9f, 0, 0, 0 }, { 0, 0, 1, 0 });
 	pyramid.ReadFile();
 	pyramid.CreateDeviceDependentResources(m_deviceResources);
 	pyramid.Translate({ 1.0f, 1.0f, 1.0f });
@@ -503,7 +551,6 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	ground.SetPointLight({ 2, 3.0f, 2, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
 	//ground.SetSpotLight({ 5, 6, 5, 0 }, { 1.0f, 1.0f, 1.0f, 0 }, { 0.9f, 0, 0, 0 }, { 0, -1, 0, 0 });
 	ground.SetSpotLight({ 0, 0, 0, 0 }, { 1.0f, 1.0f, 1.0f, 0 }, { 0.9f, 0, 0, 0 }, { 0, 0, 1, 0 });
-	//ground.SetGeometryShader(points);
 	ground.ReadFile();
 	ground.CreateDeviceDependentResources(m_deviceResources);
 	ground.Translate({ -5.0f, 1.5f, 2.0f });
@@ -514,13 +561,218 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	skyBox.SetFilePath("Assets/SkyBox.obj");
 	skyBox.SetTexturePath("Assets/hotelCubeMap1024.dds");
 	skyBox.SetIsSkybox(true);
-	//skyBox.SetDirectionalLight({ 0.577f, 0.577f, -0.577f, 0 }, { 0.75f, 0.75f, 0.94f, 1.0f }, { 1, 1, 1, 1 });
-	//skyBox.SetPointLight({ 1, 4.0f, 1, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
-	//skyBox.SetSpotLight({ 0, 0, 0, 0 }, { 1.0f, 1.0f, 1.0f, 0 }, { 0.9f, 0, 0, 0 }, { 0, 0, 1, 0 });
 	skyBox.ReadFile();
 	skyBox.CreateDeviceDependentResources(m_deviceResources);
 	skyBox.Translate({ 0, 0, 0 });
 	skyBox.SetScaleMatrix(50, 50, 50);
+
+
+	tv.SetFilePath("Assets/TV.obj");
+	tv.SetTexturePath("Assets/TV_D.dds");
+	tv.SetDirectionalLight({ 0.577f, 0.577f, -0.577f, 0 }, { 0.75f, 0.75f, 0.94f, 1.0f }, { 0.3f, 0.3f, 0.3f, 0.3f });
+	tv.SetPointLight({ 2, 3.0f, 2, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
+	tv.SetSpotLight({ 0, 0, 0, 0 }, { 1.0f, 1.0f, 1.0f, 0 }, { 0.9f, 0, 0, 0 }, { 0, 0, 1, 0 });
+	tv.ReadFile();
+	tv.CreateDeviceDependentResources(m_deviceResources);
+	//tv.Rotate(90 * 3.14 / 180);
+	tv.Translate({6, 0, -2 });
+	tv.SetScaleMatrix(5, 5, 5);
+
+	models.push_back(&tv);
+
+	cube.SetFilePath("Assets/Cube.obj");
+	cube.SetShaderResourceView(m_deviceResources->GetShaderResourceView(), true);
+	//cube.SetTexturePath("Assets/Diffuse_Treehouse.dds");
+	//handle render to texture
+
+
+	//D3D11_TEXTURE2D_DESC textDesc = { 0 };
+	//textDesc.Width = m_deviceResources->GetOutputSize().Width;
+	//textDesc.Height = m_deviceResources->GetOutputSize().Height;
+	//textDesc.MipLevels = 1;
+	//textDesc.ArraySize = 1;
+	//textDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE; //so I can write to text and I can read
+	//textDesc.Usage = D3D11_USAGE_DEFAULT;
+	//textDesc.SampleDesc.Count = 1;
+	//textDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+
+	//m_deviceResources->GetD3DDevice()->CreateTexture2D(&textDesc, NULL, &renderToTextureCube);
+
+	//D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = { };
+	//rtvDesc.Format = textDesc.Format;
+	//rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+	//rtvDesc.Texture2D.MipSlice = 0;
+
+	//m_deviceResources->GetD3DDevice()->CreateRenderTargetView(renderToTextureCube.Get(), &rtvDesc, &rtvCube);
+
+	//D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	//srvDesc.Format = textDesc.Format;
+	//srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	//srvDesc.Texture2D.MostDetailedMip = 0;
+	//srvDesc.Texture2D.MipLevels = 1;
+
+	//m_deviceResources->GetD3DDevice()->CreateShaderResourceView(renderToTextureCube.Get(), &srvDesc, &srvCube);
+
+
+	//{XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT3(0.0f, 0.0f, 0.0f)},
+	//{ XMFLOAT3(-0.5f, -0.5f,  0.5f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
+	//{ XMFLOAT3(-0.5f,  0.5f, -0.5f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
+	//{ XMFLOAT3(-0.5f,  0.5f,  0.5f), XMFLOAT3(0.0f, 1.0f, 1.0f) },
+	//{ XMFLOAT3(0.5f, -0.5f, -0.5f), XMFLOAT3(1.0f, 0.0f, 0.0f) },
+	//{ XMFLOAT3(0.5f, -0.5f,  0.5f), XMFLOAT3(1.0f, 0.0f, 1.0f) },
+	//{ XMFLOAT3(0.5f,  0.5f, -0.5f), XMFLOAT3(1.0f, 1.0f, 0.0f) },
+	//{ XMFLOAT3(0.5f,  0.5f,  0.5f), XMFLOAT3(1.0f, 1.0f, 1.0f) },
+
+	cube.SetIsSceneTexture(true);
+	cube.ReadFile();
+	cube.CreateDeviceDependentResources(m_deviceResources);
+	cube.SetIdentityMatrix();
+	cube.Translate(XMFLOAT3{ -1, 1, 1 });
+
+	models.push_back(&cube);
+
+	Vertex screenVertices[6];
+	unsigned int indices[] = { 0, 1, 2, 3, 4, 5 };
+	float left, right, top, bottom;
+
+	//left = (float)(-1 * (m_deviceResources->GetOutputSize().Width / 2.0f));
+	//right = left + m_deviceResources->GetOutputSize().Width;
+	//top = m_deviceResources->GetOutputSize().Height / 2.0f;
+	//bottom = top - m_deviceResources->GetOutputSize().Height;
+
+	left = -1.0f / 2;
+	right = 1.0f / 2;
+	top = 1.0f / 2;
+	bottom = -1.0f / 2;
+
+	//first triangle
+	screenVertices[0].position = XMFLOAT3(left, top, 0); //Top Left
+	screenVertices[0].uv = XMFLOAT2(0, 0);
+
+	screenVertices[1].position = XMFLOAT3(right, top, 0); //Top Right
+	screenVertices[1].uv = XMFLOAT2(1, 0);
+
+	screenVertices[2].position = XMFLOAT3(left, bottom, 0); //Bottom Left
+	screenVertices[2].uv = XMFLOAT2(0, 1);
+
+	//second triangle
+	screenVertices[3].position = XMFLOAT3(right, top, 0); //Top Right
+	screenVertices[3].uv = XMFLOAT2(1, 0);
+
+	screenVertices[4].position = XMFLOAT3(right, bottom, 0); //Bottom Right
+	screenVertices[4].uv = XMFLOAT2(1, 1);
+
+	screenVertices[5].position = XMFLOAT3(left, bottom, 0); //Bottom Left
+	screenVertices[5].uv = XMFLOAT2(0, 1);
+
+	scene.SetVerticesAndIndices(screenVertices, indices, 6, 6);
+	scene.SetShaderResourceView(m_deviceResources->GetShaderResourceView(), true);
+	//scene.SetTexturePath("Assets/Diffuse_Treehouse.dds");
+	scene.SetIsSceneTexture(true);
+	scene.SetIdentityMatrix();
+	scene.CreateDeviceDependentResources(m_deviceResources);
+
+	//models.push_back(&scene);
+
+	//handle transparent objects
+
+	//handle positions
+	Vertex transCubeVertices[] =
+	{
+		{ XMFLOAT3(-0.5f, -0.5f, -0.5f),},
+		{ XMFLOAT3(-0.5f, -0.5f,  0.5f),},
+		{ XMFLOAT3(-0.5f,  0.5f, -0.5f),},
+		{ XMFLOAT3(-0.5f,  0.5f,  0.5f),},
+		{ XMFLOAT3(0.5f, -0.5f, -0.5f),},
+		{ XMFLOAT3(0.5f, -0.5f,  0.5f),},
+		{ XMFLOAT3(0.5f,  0.5f, -0.5f),},
+		{ XMFLOAT3(0.5f,  0.5f,  0.5f),},
+	};
+
+	//Vertex transCubeVertices2[] =
+	//{
+	//	{ XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT4(0.0f, 1.0f, 0.0f, 0.7f) },
+	//	{ XMFLOAT3(-0.5f, -0.5f,  0.5f), XMFLOAT4(0.0f, 1.0f, 0.0f, 0.7f) },
+	//	{ XMFLOAT3(-0.5f,  0.5f, -0.5f), XMFLOAT4(0.0f, 1.0f, 0.0f, 0.7f) },
+	//	{ XMFLOAT3(-0.5f,  0.5f,  0.5f), XMFLOAT4(0.0f, 1.0f, 0.0f, 0.7f) },
+	//	{ XMFLOAT3(0.5f, -0.5f, -0.5f), XMFLOAT4(0.0f, 1.0f, 0.0f, 0.7f) },
+	//	{ XMFLOAT3(0.5f, -0.5f,  0.5f), XMFLOAT4(0.0f, 1.0f, 0.0f, 0.7f) },
+	//	{ XMFLOAT3(0.5f,  0.5f, -0.5f), XMFLOAT4(0.0f, 1.0f, 0.0f, 0.7f) },
+	//	{ XMFLOAT3(0.5f,  0.5f,  0.5f), XMFLOAT4(0.0f, 1.0f, 0.0f, 0.7f) },
+	//};
+
+	//Vertex transCubeVertices3[] =
+	//{
+	//	{ XMFLOAT3(-0.5f, -0.5f, -0.5f), XMFLOAT4(0.0f, 0.0f, 1.0f, 0.7f) },
+	//	{ XMFLOAT3(-0.5f, -0.5f,  0.5f), XMFLOAT4(0.0f, 0.0f, 1.0f, 0.7f) },
+	//	{ XMFLOAT3(-0.5f,  0.5f, -0.5f), XMFLOAT4(0.0f, 0.0f, 1.0f, 0.7f) },
+	//	{ XMFLOAT3(-0.5f,  0.5f,  0.5f), XMFLOAT4(0.0f, 0.0f, 1.0f, 0.7f) },
+	//	{ XMFLOAT3(0.5f, -0.5f, -0.5f), XMFLOAT4(0.0f, 0.0f, 1.0f, 0.7f) },
+	//	{ XMFLOAT3(0.5f, -0.5f,  0.5f), XMFLOAT4(0.0f, 0.0f, 1.0f, 0.7f) },
+	//	{ XMFLOAT3(0.5f,  0.5f, -0.5f), XMFLOAT4(0.0f, 0.0f, 1.0f, 0.7f) },
+	//	{ XMFLOAT3(0.5f,  0.5f,  0.5f), XMFLOAT4(0.0f, 0.0f, 1.0f, 0.7f) },
+	//};
+
+	unsigned int transCubeIndices[] =
+	{
+		0,1,2, // -x
+		1,3,2,
+
+		4,6,5, // +x
+		5,6,7,
+
+		0,5,1, // -y
+		0,4,5,
+
+		2,7,6, // +y
+		2,3,7,
+
+		0,6,4, // -z
+		0,2,6,
+
+		1,7,3, // +z
+		1,5,7,
+	};
+
+	transparentCube1.SetFilePath("Assets/Cube.obj");
+	transparentCube1.SetVerticesAndIndices(transCubeVertices, transCubeIndices, ARRAYSIZE(transCubeVertices), ARRAYSIZE(transCubeIndices));
+	transparentCube1.SetDirectionalLight({ 0.577f, 0.577f, -0.577f, 0 }, { 0.75f, 0.75f, 0.94f, 1.0f }, { 0.3f, 0.3f, 0.3f, 0.3f });
+	transparentCube1.SetPointLight({ 2, 3.0f, 2, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
+	transparentCube1.SetSpotLight({ 0, 0, 0, 0 }, { 1.0f, 1.0f, 1.0f, 0 }, { 0.9f, 0, 0, 0 }, { 0, 0, 1, 0 });
+	transparentCube1.ReadFile();
+	transparentCube1.CreateDeviceDependentResources(m_deviceResources);
+	transparentCube1.SetIdentityMatrix();
+	transparentCube1.Translate(XMFLOAT3(2, 1, 1));
+	transparentCube1.SetIsTransparent(true);
+
+	transparentModels.push_back(&transparentCube1);
+
+	transparentCube2.SetFilePath("Assets/Cube.obj");
+	transparentCube2.SetVerticesAndIndices(transCubeVertices, transCubeIndices, ARRAYSIZE(transCubeVertices), ARRAYSIZE(transCubeIndices));
+	transparentCube2.SetDirectionalLight({ 0.577f, 0.577f, -0.577f, 0 }, { 0.75f, 0.75f, 0.94f, 1.0f }, { 0.3f, 0.3f, 0.3f, 0.3f });
+	transparentCube2.SetPointLight({ 2, 3.0f, 2, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
+	transparentCube2.SetSpotLight({ 0, 0, 0, 0 }, { 1.0f, 1.0f, 1.0f, 0 }, { 0.9f, 0, 0, 0 }, { 0, 0, 1, 0 });
+	transparentCube2.ReadFile();
+	transparentCube2.CreateDeviceDependentResources(m_deviceResources);
+	transparentCube2.SetIdentityMatrix();
+	transparentCube2.Translate(XMFLOAT3(2, 1, -0.5f));
+	transparentCube2.SetIsTransparent(true);
+
+	transparentModels.push_back(&transparentCube2);
+
+	transparentCube3.SetFilePath("Assets/Cube.obj");
+	transparentCube3.SetVerticesAndIndices(transCubeVertices, transCubeIndices, ARRAYSIZE(transCubeVertices), ARRAYSIZE(transCubeIndices));
+	transparentCube3.SetDirectionalLight({ 0.577f, 0.577f, -0.577f, 0 }, { 0.75f, 0.75f, 0.94f, 1.0f }, { 0.3f, 0.3f, 0.3f, 0.3f });
+	transparentCube3.SetPointLight({ 2, 3.0f, 2, 0 }, { 1, 0, 0, 0 }, { 5, 0, 0, 0 });
+	transparentCube3.SetSpotLight({ 0, 0, 0, 0 }, { 1.0f, 1.0f, 1.0f, 0 }, { 0.9f, 0, 0, 0 }, { 0, 0, 1, 0 });
+	transparentCube3.ReadFile();
+	transparentCube3.CreateDeviceDependentResources(m_deviceResources);
+	transparentCube3.SetIdentityMatrix();
+	transparentCube3.Translate(XMFLOAT3(2, 1, -2.0f));
+	transparentCube3.SetIsTransparent(true);
+
+	transparentModels.push_back(&transparentCube3);
+
 
 	//tree.SetFilePath("Assets/Tree.obj");
 	//tree.SetTexturePath("Assets/Diffuse_Treehouse.dds");
@@ -542,3 +794,4 @@ void Sample3DSceneRenderer::ReleaseDeviceDependentResources(void)
 	m_vertexBuffer.Reset();
 	m_indexBuffer.Reset();
 }
+

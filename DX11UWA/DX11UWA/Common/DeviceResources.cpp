@@ -380,6 +380,36 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 			)
 		);
 
+	//create a render target view of an offscreen texture
+	D3D11_TEXTURE2D_DESC textDesc = { 0 };
+	textDesc.Width = GetOutputSize().Width;
+	textDesc.Height = GetOutputSize().Height;
+	textDesc.MipLevels = 1;
+	textDesc.ArraySize = 1;
+	textDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE; //so I can write to text and I can read
+	textDesc.Usage = D3D11_USAGE_DEFAULT;
+	textDesc.SampleDesc.Count = 1;
+	textDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+
+	HRESULT hr1 = GetD3DDevice()->CreateTexture2D(&textDesc, NULL, &m_offScreenTexture);
+
+	DX::ThrowIfFailed(
+		m_d3dDevice->CreateRenderTargetView(
+			m_offScreenTexture.Get(),
+			nullptr,
+			&m_d3dRenderTargetView2
+		)
+	);
+
+	//then tie the shader resource view to this offscreen texture
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = textDesc.Format;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	srvDesc.Texture2D.MipLevels = 1;
+
+	HRESULT hr2 = m_d3dDevice->CreateShaderResourceView(m_offScreenTexture.Get(), &srvDesc, &srvCube);
+
 	// Create a depth stencil view for use with 3D rendering if needed.
 	CD3D11_TEXTURE2D_DESC1 depthStencilDesc(
 		DXGI_FORMAT_D24_UNORM_S8_UINT, 
@@ -399,6 +429,15 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 			)
 		);
 
+	ComPtr<ID3D11Texture2D1> depthStencil2;
+	DX::ThrowIfFailed(
+		m_d3dDevice->CreateTexture2D1(
+			&depthStencilDesc,
+			nullptr,
+			&depthStencil2
+		)
+	);
+
 	CD3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc(D3D11_DSV_DIMENSION_TEXTURE2D);
 	DX::ThrowIfFailed(
 		m_d3dDevice->CreateDepthStencilView(
@@ -407,6 +446,15 @@ void DX::DeviceResources::CreateWindowSizeDependentResources()
 			&m_d3dDepthStencilView
 			)
 		);
+
+	CD3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc2(D3D11_DSV_DIMENSION_TEXTURE2D);
+	DX::ThrowIfFailed(
+		m_d3dDevice->CreateDepthStencilView(
+			depthStencil2.Get(),
+			&depthStencilViewDesc2,
+			&m_d3dDepthStencilView2
+		)
+	);
 	
 	// Set the 3D rendering viewport to target the top of the window
 	m_screenViewport = CD3D11_VIEWPORT(

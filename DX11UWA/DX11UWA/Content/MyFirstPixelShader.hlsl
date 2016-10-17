@@ -8,7 +8,7 @@ struct PixelShaderInput
 	float4 localPosition : POSITION1;
 	float3 tangent : TANGENT;
 	float3 binormal : BINORMAL;
-	//float3 pixelColor : COLOR;
+	//float4 pixelColor : COLOR;
 };
 
 cbuffer LightingConstantBuffer : register(b0)
@@ -30,12 +30,16 @@ cbuffer LightingConstantBuffer : register(b0)
 
 	float4 isSkyBox;
 	float4 isNormalMap;
+	float4 isSceneTexture;
+	float4 isTransparent;
+
+	float4 camPosition;
 };
 
 texture2D baseTexture : register(t0);
 texture2D normalTexture : register(t1);
 TextureCube skyBoxTexture : register(t2);
-SamplerState filters[2] : register(s0);
+SamplerState filter : register(s0);
 
 // A pass-through function for the (interpolated) color data.
 float4 main(PixelShaderInput input) : SV_TARGET
@@ -48,13 +52,40 @@ float4 main(PixelShaderInput input) : SV_TARGET
 	float4 finalColor;
 
 
-	if (isSkyBox.x)
+	if (isTransparent.x)
 	{
-		finalColor = skyBoxTexture.Sample(filters[0], input.localPosition);
+		//if (input.worldPosition.z >= 1)
+		//{
+		//	finalColor = float4(1.0f, 0, 0, 0.7f);
+		//}
+		//else if (input.worldPosition.z >= -0.5f)
+		//{
+		//	finalColor = float4(0, 1.0f, 0, 0.7f);
+		//}
+		//else
+		{
+			finalColor = float4(0, 0, 1.0f, 0.7f);
+		}
+
+		//finalColor = input.pixelColor;
+	}
+	else if (isSkyBox.x)
+	{
+		finalColor = skyBoxTexture.Sample(filter, input.localPosition);
+	}
+	else if (isSceneTexture.x)
+	{
+		finalColor = baseTexture.Sample(filter, input.uv);
+
+		float avg = (finalColor.x + finalColor.y + finalColor.z) / 3;
+
+		finalColor.x = avg;
+		finalColor.y = avg;
+		finalColor.z = avg;
 	}
 	else
 	{
-		color = baseTexture.Sample(filters[0], input.uv);
+		color = baseTexture.Sample(filter, input.uv);
 
 
 		if (color.a < 0.5f)
@@ -64,7 +95,7 @@ float4 main(PixelShaderInput input) : SV_TARGET
 
 		if (isNormalMap.x)
 		{
-			bumpMap = normalTexture.Sample(filters[0], input.uv);
+			bumpMap = normalTexture.Sample(filter, input.uv);
 			bumpMap = (bumpMap * 2.0f) - 1.0f;
 			input.normal = normalize((bumpMap.x * input.tangent) + (bumpMap.y * input.binormal) + (bumpMap.z * input.normal));
 		}

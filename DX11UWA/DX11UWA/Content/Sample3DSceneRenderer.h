@@ -29,6 +29,7 @@ namespace DX11UWA
 		void SetMousePosition(const Windows::UI::Input::PointerPoint^ pos);
 		void SetInputDeviceData(const char* kb, const Windows::UI::Input::PointerPoint^ pos);
 
+		//void UpdateTransparentObjects();
 
 	private:
 		void Rotate(float radians);
@@ -73,14 +74,25 @@ namespace DX11UWA
 		Model skyBox;
 		Model willowTree;
 		Model grass;
+		Model tv;
+		Model cube;
+		Model scene;
+		Model transparentCube1;
+		Model transparentCube2;
+		Model transparentCube3;
 		vector<Model*> models;
-		//Scene scene;
+		vector<Model*> transparentModels;
 
 		//For spotlight
 		XMVECTOR camTarget;
 		XMMATRIX camRotationMatrix;
 		float camYaw = 0;
 		float camPitch = 0;
+
+		//For RTTCube
+		Microsoft::WRL::ComPtr<ID3D11Texture2D> renderToTextureCube;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srvCube;
+		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> rtvCube;
 	};
 }
 
